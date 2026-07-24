@@ -6,6 +6,15 @@ type Phase = "mall" | "budget" | "shop" | "scratch" | "validation" | "summary";
 type PlayMode = "direct" | "match" | "symbol" | "combo";
 type PaySource = "cash" | "prize";
 type StockTone = "open" | "thin" | "last" | "sold";
+type ScratchToolId = "coin" | "small-scraper" | "wide-scraper";
+
+type ScratchTool = {
+  id: ScratchToolId;
+  name: string;
+  detail: string;
+  width: number;
+  glyph: string;
+};
 
 type PrizeTier = {
   amount: number;
@@ -63,6 +72,8 @@ type PublicStock = {
   label: string;
   canSell: boolean;
   hasSealed: boolean;
+  openBooks: number;
+  visibleBookIds: string[];
 };
 
 type SessionLog = {
@@ -253,6 +264,12 @@ const STORE_MOODS = [
   "工作日午后 · 店里只有你和老板",
   "晚饭前 · 两种彩票刚卖掉一截",
   "商场打烊前一小时 · 有些票已经售罄",
+];
+
+const SCRATCH_TOOLS: ScratchTool[] = [
+  { id: "coin", name: "一元硬币", detail: "窄口 · 最细致", width: 17, glyph: "¥1" },
+  { id: "small-scraper", name: "小号刮片", detail: "中口 · 日常省力", width: 30, glyph: "S" },
+  { id: "wide-scraper", name: "宽口刮铲", detail: "宽口 · 整本效率", width: 48, glyph: "L" },
 ];
 
 const money = new Intl.NumberFormat("zh-CN");
@@ -483,10 +500,12 @@ function createBook(type: TicketType): Book {
 
 function ScratchLayer({
   ticketId,
+  tool,
   onProgress,
   onComplete,
 }: {
   ticketId: string;
+  tool: ScratchTool;
   onProgress: (progress: number) => void;
   onComplete: () => void;
 }) {
@@ -574,7 +593,7 @@ function ScratchLayer({
       context.globalCompositeOperation = "destination-out";
       context.lineCap = "round";
       context.lineJoin = "round";
-      context.lineWidth = 17 * Math.max(scaleX, scaleY);
+      context.lineWidth = tool.width * Math.max(scaleX, scaleY);
       context.beginPath();
       context.moveTo(previous.x, previous.y);
       context.lineTo(point.x, point.y);
@@ -584,14 +603,14 @@ function ScratchLayer({
       movesRef.current += 1;
       if (movesRef.current % 7 === 0) measure();
     },
-    [measure],
+    [measure, tool.width],
   );
 
   return (
     <canvas
       ref={canvasRef}
       className="scratch-layer"
-      aria-label="银色彩票覆盖膜，按住并来回刮开"
+      aria-label={`银色彩票覆盖膜，使用${tool.name}按住并来回刮开`}
       onPointerDown={(event) => {
         drawingRef.current = true;
         lastPointRef.current = null;
@@ -636,7 +655,7 @@ function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
               {ticket.cells
                 .filter((cell) => cell.section === group.id)
                 .map((cell, index) => (
-                  <div className={`ticket-cell cell-${cell.kind}`} key={`${group.id}-${index}`}>
+                  <div className="ticket-cell" key={`${group.id}-${index}`}>
                     <span>{cell.label}</span>
                     <strong>{formatMoney(cell.amount)}</strong>
                   </div>
@@ -658,7 +677,7 @@ function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
       )}
       <div className="ticket-grid">
         {ticket.cells.filter((cell) => cell.section !== "lucky").map((cell, index) => (
-          <div className={`ticket-cell cell-${cell.kind}`} key={`${ticket.id}-${index}`}>
+          <div className="ticket-cell" key={`${ticket.id}-${index}`}>
             {type.mode !== "direct" && <span>{cell.label}</span>}
             {cell.amount > 0 && <strong>{formatMoney(cell.amount)}</strong>}
           </div>
@@ -681,11 +700,13 @@ function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
 function TicketFace({
   ticket,
   type,
+  tool,
   onProgress,
   onComplete,
 }: {
   ticket: Ticket;
   type: TicketType;
+  tool: ScratchTool;
   onProgress: (progress: number) => void;
   onComplete: () => void;
 }) {
@@ -717,7 +738,7 @@ function TicketFace({
         <div className="ticket-content">
           <TicketCells ticket={ticket} type={type} />
         </div>
-        <ScratchLayer ticketId={ticket.id} onProgress={onProgress} onComplete={onComplete} />
+        <ScratchLayer ticketId={ticket.id} tool={tool} onProgress={onProgress} onComplete={onComplete} />
       </div>
       <footer className="ticket-foot">
         <span>保安区刮开无效　▦ {ticket.validationCode}</span>
@@ -780,17 +801,20 @@ export default function Home() {
   const [scratchIndex, setScratchIndex] = useState(0);
   const [scratchPercent, setScratchPercent] = useState(0);
   const [scratchReady, setScratchReady] = useState(false);
+  const [scratchToolId, setScratchToolId] = useState<ScratchToolId>("small-scraper");
+  const [bookRequestId, setBookRequestId] = useState(TICKET_TYPES[0].id);
   const [validationQueue, setValidationQueue] = useState<Ticket[]>([]);
   const [lastVerified, setLastVerified] = useState<Ticket[]>([]);
   const [logs, setLogs] = useState<SessionLog[]>([]);
   const [stock, setStock] = useState<Record<string, PublicStock>>({});
-  const booksRef = useRef<Record<string, Book | undefined>>({});
+  const openBooksRef = useRef<Record<string, Book[]>>({});
   const sealedBooksRef = useRef<Record<string, number>>({});
 
   const activeTicket = scratchQueue[scratchIndex];
   const activeType = activeTicket
     ? TICKET_TYPES.find((type) => type.id === activeTicket.typeId)
     : undefined;
+  const scratchTool = SCRATCH_TOOLS.find((tool) => tool.id === scratchToolId) ?? SCRATCH_TOOLS[1];
 
   const addLog = useCallback((label: string, amount: number, tone: SessionLog["tone"]) => {
     setLogs((current) => [
@@ -802,8 +826,11 @@ export default function Home() {
   const syncStock = useCallback(() => {
     const snapshot = Object.fromEntries(
       TICKET_TYPES.map((type) => {
-        const book = booksRef.current[type.id];
-        const remaining = book ? book.tickets.length - book.cursor : 0;
+        const books = openBooksRef.current[type.id] ?? [];
+        const remaining = books.reduce(
+          (sum, book) => sum + Math.max(0, book.tickets.length - book.cursor),
+          0,
+        );
         const sealed = sealedBooksRef.current[type.id] ?? 0;
         let tone: StockTone = "open";
         let label = pick(["架上正在卖", "柜台里还有", "今天有人在买"]);
@@ -819,7 +846,17 @@ export default function Home() {
         }
         return [
           type.id,
-          { tone, label, canSell: remaining + sealed * type.bookSize > 0, hasSealed: sealed > 0 },
+          {
+            tone,
+            label,
+            canSell: remaining > 0,
+            hasSealed: sealed > 0,
+            openBooks: books.filter((book) => book.cursor < book.tickets.length).length,
+            visibleBookIds: books
+              .filter((book) => book.cursor < book.tickets.length)
+              .slice(0, 4)
+              .map((book) => book.id),
+          },
         ];
       }),
     );
@@ -827,31 +864,38 @@ export default function Home() {
   }, []);
 
   const internalAvailable = useCallback((type: TicketType) => {
-    const book = booksRef.current[type.id];
-    const open = book ? book.tickets.length - book.cursor : 0;
+    const open = (openBooksRef.current[type.id] ?? []).reduce(
+      (sum, book) => sum + Math.max(0, book.tickets.length - book.cursor),
+      0,
+    );
     return open + (sealedBooksRef.current[type.id] ?? 0) * type.bookSize;
   }, []);
 
   const takeFromOpenBooks = useCallback(
-    (type: TicketType, count: number) => {
+    (type: TicketType, count: number, preferredBookId?: string) => {
       if (internalAvailable(type) < count) return null;
       const taken: Ticket[] = [];
       while (taken.length < count) {
-        let book = booksRef.current[type.id];
-        if (!book || book.cursor >= book.tickets.length) {
+        let books = openBooksRef.current[type.id] ?? [];
+        let book =
+          books.find((candidate) => candidate.id === preferredBookId && candidate.cursor < candidate.tickets.length) ??
+          pick(books.filter((candidate) => candidate.cursor < candidate.tickets.length));
+        if (!book) {
           const sealed = sealedBooksRef.current[type.id] ?? 0;
           if (sealed <= 0) return null;
           book = createBook(type);
-          booksRef.current[type.id] = book;
+          books = [...books, book];
+          openBooksRef.current[type.id] = books;
           sealedBooksRef.current[type.id] = sealed - 1;
         }
         const available = book.tickets.length - book.cursor;
         const amount = Math.min(count - taken.length, available);
         taken.push(...book.tickets.slice(book.cursor, book.cursor + amount));
-        booksRef.current = {
-          ...booksRef.current,
-          [type.id]: { ...book, cursor: book.cursor + amount },
-        };
+        const updated = { ...book, cursor: book.cursor + amount };
+        openBooksRef.current[type.id] = books.map((candidate) =>
+          candidate.id === book.id ? updated : candidate,
+        );
+        preferredBookId = undefined;
       }
       syncStock();
       return taken;
@@ -889,7 +933,12 @@ export default function Home() {
   );
 
   const buyTickets = useCallback(
-    (type: TicketType, count: number, sealedBook = false) => {
+    (
+      type: TicketType,
+      count: number,
+      options: { sealedBook?: boolean; preferredBookId?: string; ownerPicked?: boolean } = {},
+    ) => {
+      const { sealedBook = false, preferredBookId, ownerPicked = false } = options;
       const total = type.price * count;
       if (!canPay(total)) {
         setOwnerLine(
@@ -908,7 +957,7 @@ export default function Home() {
           syncStock();
         }
       } else {
-        tickets = takeFromOpenBooks(type, count);
+        tickets = takeFromOpenBooks(type, count, preferredBookId);
       }
       if (!tickets) {
         setOwnerLine("这款实际剩下的不够你要的张数了。换少一点，或者看看别的票。");
@@ -920,13 +969,15 @@ export default function Home() {
       setOwnerLine(
         sealedBook
           ? pick(DIALOGUE.wholeBook)
+          : ownerPicked
+            ? `我从${stock[type.id]?.openBooks ?? "几"}个开本里随手拿了一摞，没有看号，也没有挑奖。`
           : count >= 5
             ? pick(DIALOGUE.manyBuy)
             : pick(DIALOGUE.smallBuy),
       );
       beginScratching(tickets);
     },
-    [addLog, beginScratching, canPay, charge, paySource, syncStock, takeFromOpenBooks],
+    [addLog, beginScratching, canPay, charge, paySource, stock, syncStock, takeFromOpenBooks],
   );
 
   const buyBlindBox = useCallback(() => {
@@ -1043,22 +1094,27 @@ export default function Home() {
     TICKET_TYPES.forEach((type, index) => {
       const inStock = Math.random() > 0.18 || index === 0;
       if (inStock) {
-        const book = createBook(type);
-        book.cursor = randomInt(1, Math.max(1, type.bookSize - 5));
-        booksRef.current[type.id] = book;
-        sealedBooksRef.current[type.id] = Math.random() > 0.45 ? randomInt(1, 2) : 0;
+        const openBookCount = randomInt(2, 4);
+        openBooksRef.current[type.id] = Array.from({ length: openBookCount }, () => {
+          const book = createBook(type);
+          book.cursor = randomInt(1, Math.max(1, type.bookSize - 5));
+          return book;
+        });
+        sealedBooksRef.current[type.id] = Math.random() > 0.35 ? randomInt(1, 3) : 0;
         availableCount += 1;
       } else {
-        booksRef.current[type.id] = undefined;
+        openBooksRef.current[type.id] = [];
         sealedBooksRef.current[type.id] = 0;
       }
     });
     if (availableCount < 3) {
       TICKET_TYPES.slice(0, 3).forEach((type) => {
-        if (!booksRef.current[type.id]) {
-          const book = createBook(type);
-          book.cursor = randomInt(2, Math.max(2, type.bookSize - 7));
-          booksRef.current[type.id] = book;
+        if ((openBooksRef.current[type.id] ?? []).length === 0) {
+          openBooksRef.current[type.id] = Array.from({ length: 2 }, () => {
+            const book = createBook(type);
+            book.cursor = randomInt(2, Math.max(2, type.bookSize - 7));
+            return book;
+          });
         }
       });
     }
@@ -1068,7 +1124,7 @@ export default function Home() {
   }, [budgetInput, isAdult, syncStock]);
 
   const resetGame = useCallback(() => {
-    booksRef.current = {};
+    openBooksRef.current = {};
     sealedBooksRef.current = {};
     setPhase("mall");
     setBudgetInput(100);
@@ -1094,6 +1150,9 @@ export default function Home() {
   const sessionNet = wallet + prizeBalance - initialBudget;
   const totalStake = cashSpent + rolloverSpent;
   const validationTotal = lastVerified.reduce((sum, ticket) => sum + ticket.prize, 0);
+  const requestedBookType =
+    TICKET_TYPES.find((type) => type.id === bookRequestId) ?? TICKET_TYPES[0];
+  const requestedBookStock = stock[requestedBookType.id];
   const stats = useMemo(
     () => [
       { label: "手上现金", value: formatMoney(wallet) },
@@ -1190,16 +1249,37 @@ export default function Home() {
           <TicketFace
             ticket={activeTicket}
             type={activeType}
+            tool={scratchTool}
             onProgress={setScratchPercent}
             onComplete={() => setScratchReady(true)}
           />
           <div className="scratch-actions scratch-actions-v2">
+            <div className="scratch-toolbox" aria-label="选择刮奖工具">
+              <span>桌上的工具</span>
+              <div>
+                {SCRATCH_TOOLS.map((tool) => (
+                  <button
+                    className={scratchToolId === tool.id ? "active" : ""}
+                    key={tool.id}
+                    onClick={() => setScratchToolId(tool.id)}
+                    aria-pressed={scratchToolId === tool.id}
+                  >
+                    <i>{tool.glyph}</i>
+                    <b>{tool.name}</b>
+                    <small>{tool.detail}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
             {!scratchReady ? (
               <>
                 <div className="scratch-meter" aria-label={`已刮开 ${scratchPercent}%`}>
                   <i style={{ width: `${scratchPercent}%` }} />
                 </div>
-                <p>按住硬币来回移动。还要刮开 {Math.max(0, 72 - scratchPercent)}% 才能送去验票。</p>
+                <p>
+                  按住{scratchTool.name}来回移动。还要刮开 {Math.max(0, 72 - scratchPercent)}%
+                  才能送去验票；票面不会替你圈出中奖位置。
+                </p>
               </>
             ) : (
               <>
@@ -1358,6 +1438,32 @@ export default function Home() {
             </div>
             {prizeBalance > 0 && <button className="redeem-link" onClick={redeemAll}>不换票，直接兑奖收钱</button>}
           </div>
+          <div className="book-request-panel">
+            <span className="section-label">整本不摆在单张货架上</span>
+            <p>想买未拆封整本，要单独问老板去柜子里找。</p>
+            <select
+              value={bookRequestId}
+              onChange={(event) => setBookRequestId(event.target.value)}
+              aria-label="选择想询问的整本彩票"
+            >
+              {TICKET_TYPES.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name} · {formatMoney(type.price * type.bookSize)}
+                </option>
+              ))}
+            </select>
+            <button
+              disabled={
+                !requestedBookStock?.hasSealed ||
+                !canPay(requestedBookType.price * requestedBookType.bookSize)
+              }
+              onClick={() =>
+                buyTickets(requestedBookType, requestedBookType.bookSize, { sealedBook: true })
+              }
+            >
+              {requestedBookStock?.hasSealed ? "问老板拿一整本" : "老板说暂时没有密封本"}
+            </button>
+          </div>
           <div className="session-log">
             <div className="section-label">刚才发生的事</div>
             {logs.length === 0 ? (
@@ -1377,7 +1483,10 @@ export default function Home() {
           <div className="shelf-head">
             <div>
               <span className="section-label">玻璃柜里能看到的票</span>
-              <p>只能看出“有、少、卖空”，看不到整本还剩几张。单张仍会从当前开本按顺序取出。</p>
+              <p>
+                同一票种可能同时拆着几个开本。你能从柜台露出的几张里挑，也可以让老板随手拿；
+                看不见每个开本还剩多少张。
+              </p>
             </div>
             <span className="model-badge">店况随机</span>
           </div>
@@ -1389,6 +1498,8 @@ export default function Home() {
                 label: "老板还没理货",
                 canSell: false,
                 hasSealed: false,
+                openBooks: 0,
+                visibleBookIds: [],
               };
               return (
                 <article
@@ -1414,25 +1525,34 @@ export default function Home() {
                     <div className={`stock-badge ${itemStock.tone}`}>{itemStock.label}</div>
                     <p>{type.mechanic}</p>
                     <div className="design-note">{type.design}</div>
-                    <div className="quantity-actions">
+                    <div className="loose-ticket-picks">
+                      <span>自己从露出的单张里挑</span>
+                      <div>
+                        {itemStock.visibleBookIds.map((bookId, index) => (
+                          <button
+                            key={bookId}
+                            disabled={available < type.price}
+                            onClick={() =>
+                              buyTickets(type, 1, { preferredBookId: bookId })
+                            }
+                          >
+                            {["左边", "中间", "右边", "下层"][index]}
+                            <small>开本 {index + 1}</small>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="quantity-actions owner-picks">
                       {[1, 3, 5].map((count) => (
                         <button
                           key={count}
                           disabled={!itemStock.canSell || available < type.price * count}
-                          onClick={() => buyTickets(type, count)}
+                          onClick={() => buyTickets(type, count, { ownerPicked: true })}
                         >
-                          {count}张
+                          老板拿{count}张
                           <small>{formatMoney(type.price * count)}</small>
                         </button>
                       ))}
-                      <button
-                        className="book-button"
-                        disabled={!itemStock.hasSealed || available < type.price * type.bookSize}
-                        onClick={() => buyTickets(type, type.bookSize, true)}
-                      >
-                        问整本
-                        <small>{formatMoney(type.price * type.bookSize)}</small>
-                      </button>
                     </div>
                   </div>
                 </article>

@@ -2104,3 +2104,186 @@ button:disabled {
     flex-direction: column;
   }
 }
+
+/* v0.3 · 多开本、自己挑票与刮奖工具 */
+.book-request-panel {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(69, 47, 26, 0.14);
+  border-radius: 16px;
+  background: #fffaf0;
+}
+
+.book-request-panel p {
+  margin: 0;
+  color: #736656;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.book-request-panel select,
+.book-request-panel button {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(69, 47, 26, 0.16);
+  border-radius: 10px;
+  background: #fff;
+  color: #33291f;
+  font: inherit;
+}
+
+.book-request-panel button {
+  border-color: #282019;
+  background: #282019;
+  color: #fff8e9;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.book-request-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.loose-ticket-picks {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px dashed rgba(65, 43, 25, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 250, 238, 0.82);
+}
+
+.loose-ticket-picks > span {
+  color: #6d604e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.loose-ticket-picks > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.loose-ticket-picks button {
+  min-width: 0;
+  padding: 9px 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--ticket-color) 35%, #ddd);
+  border-radius: 9px 9px 4px 4px;
+  background: linear-gradient(155deg, #fff 0 76%, var(--ticket-color) 76%);
+  color: #33291f;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.loose-ticket-picks button small {
+  display: block;
+  margin-top: 3px;
+  color: #877968;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.owner-picks {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.scratch-toolbox {
+  display: grid;
+  gap: 9px;
+  width: min(720px, 100%);
+}
+
+.scratch-toolbox > span {
+  color: #736656;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.scratch-toolbox > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.scratch-toolbox button {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  grid-template-rows: auto auto;
+  gap: 1px 9px;
+  align-items: center;
+  padding: 9px 12px;
+  border: 1px solid rgba(52, 43, 34, 0.15);
+  border-radius: 12px;
+  background: #fffdf8;
+  color: #4f4336;
+  text-align: left;
+  cursor: pointer;
+}
+
+.scratch-toolbox button > i {
+  grid-row: 1 / 3;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f3f3ef, #9fa2a2);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+  color: #4d5152;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.scratch-toolbox button:nth-child(2) > i {
+  border-radius: 6px;
+}
+
+.scratch-toolbox button:nth-child(3) > i {
+  width: 38px;
+  border-radius: 4px;
+}
+
+.scratch-toolbox button b {
+  font-size: 12px;
+}
+
+.scratch-toolbox button small {
+  color: #8a7e70;
+  font-size: 10px;
+}
+
+.scratch-toolbox button.active {
+  border-color: #8f3027;
+  background: #fff1e9;
+  box-shadow: 0 0 0 2px rgba(143, 48, 39, 0.1);
+}
+
+.ticket-cell.cell-winning,
+.ticket-cell.cell-multiplier,
+.ticket-direct .ticket-cell.cell-winning {
+  border-color: rgba(58, 45, 31, 0.14);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: none;
+  animation: none;
+}
+
+@media (max-width: 720px) {
+  .scratch-toolbox > div {
+    grid-template-columns: 1fr;
+  }
+
+  .scratch-toolbox button {
+    grid-template-columns: 40px 1fr;
+  }
+
+  .loose-ticket-picks > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

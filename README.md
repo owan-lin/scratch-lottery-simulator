@@ -14,7 +14,7 @@
 
 ## 当前版本
 
-`v0.4.0`：38 款真实票库。
+`v0.5.0`：逛街剧情与 0 Token 本地对白。
 
 - 商场进店、成年确认、预算封顶和离店结算
 - 需要持续拖动的逐步刮开，不再点击或碰到就整张揭开
@@ -29,6 +29,8 @@
 - 硬币、小号刮片、宽口刮铲三种效率，中奖位置不额外高亮
 - 单张、连买、密封整本和门店自配 100 元惊喜包
 - 多组随机老板对白，以及兑奖后“收钱/同价换票”的选择
+- 可选逛街剧情模式，把商场事件带入老板对白；不联网、0 Token
+- 大模型已完成成本评估，公开版暂不接入，避免泄露密钥或产生无上限费用
 
 ## 本地运行
 
@@ -65,6 +67,7 @@ npm test
 - [docs/research.md](docs/research.md)：票种调查与概率建模说明
 - [docs/ticket-catalog.md](docs/ticket-catalog.md)：38 款票种目录与证据等级
 - [docs/PRODUCT_REVIEW.md](docs/PRODUCT_REVIEW.md)：Section Infi 产品审视与迭代决策
+- [docs/LLM_COST.md](docs/LLM_COST.md)：剧情模式与大模型 Token 预算
 - GitHub Actions 会在推送和 Pull Request 时执行构建与测试
 
 ## 免责声明

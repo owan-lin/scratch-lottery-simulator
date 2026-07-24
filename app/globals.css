@@ -2288,6 +2288,176 @@ button:disabled {
   }
 }
 
+/* v0.5 · 零 Token 逛街剧情 */
+.play-style-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin: 18px 0;
+}
+
+.play-style-picker button {
+  display: grid;
+  gap: 6px;
+  min-height: 92px;
+  padding: 13px;
+  border: 1px solid rgba(59, 44, 29, 0.15);
+  border-radius: 13px;
+  background: #fffdf8;
+  color: #3c3126;
+  text-align: left;
+  cursor: pointer;
+}
+
+.play-style-picker button b {
+  font-size: 13px;
+}
+
+.play-style-picker button span {
+  color: #796c5c;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.play-style-picker button.selected {
+  border-color: #a43028;
+  background: #fff0e7;
+  box-shadow: 0 0 0 2px rgba(164, 48, 40, 0.1);
+}
+
+.play-style-picker button.llm-disabled {
+  border-style: dashed;
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.wandering-screen {
+  min-height: 100svh;
+  padding: clamp(24px, 5vw, 70px);
+  background:
+    linear-gradient(180deg, rgba(31, 44, 52, 0.85), rgba(22, 29, 34, 0.96)),
+    repeating-linear-gradient(90deg, #4e5c64 0 1px, transparent 1px 96px);
+  color: #fff6e8;
+}
+
+.wandering-card {
+  width: min(980px, 100%);
+  margin: auto;
+}
+
+.wandering-card header {
+  max-width: 700px;
+}
+
+.wandering-card h1 {
+  margin: 12px 0;
+  font-family: var(--font-display);
+  font-size: clamp(42px, 7vw, 82px);
+  line-height: 0.96;
+}
+
+.wandering-card header p {
+  max-width: 640px;
+  color: rgba(255, 246, 232, 0.72);
+  line-height: 1.7;
+}
+
+.mall-event-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  margin: 32px 0 20px;
+}
+
+.mall-event-list button {
+  display: grid;
+  gap: 10px;
+  min-height: 210px;
+  align-content: start;
+  padding: 21px;
+  border: 1px solid rgba(255, 246, 232, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff6e8;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.mall-event-list button:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.mall-event-list button span {
+  color: #f0b86b;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.mall-event-list button b {
+  font-size: 18px;
+}
+
+.mall-event-list button small {
+  color: rgba(255, 246, 232, 0.66);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.wandering-card .text-action {
+  color: #fff0d6;
+}
+
+.story-status {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid rgba(121, 65, 37, 0.18);
+  border-radius: 999px;
+  background: #fff4df;
+  color: #8b3b2d;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.story-memory {
+  padding: 13px 14px;
+  border-left: 3px solid #b65942;
+  border-radius: 5px 13px 13px 5px;
+  background: #fff5e5;
+}
+
+.story-memory b {
+  color: #873b2f;
+  font-size: 11px;
+}
+
+.story-memory p {
+  margin: 5px 0;
+  color: #4d4135;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.story-memory small {
+  color: #8a7d6c;
+  font-size: 9px;
+}
+
+@media (max-width: 800px) {
+  .play-style-picker,
+  .mall-event-list {
+    grid-template-columns: 1fr;
+  }
+
+  .mall-event-list button {
+    min-height: 150px;
+  }
+}
+
 /* v0.4 · 数据驱动真实票库 */
 .catalog-controls {
   display: flex;

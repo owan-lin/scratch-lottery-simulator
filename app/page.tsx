@@ -8,7 +8,8 @@ import {
   type TicketDistribution,
 } from "./ticket-catalog";
 
-type Phase = "mall" | "budget" | "shop" | "scratch" | "validation" | "summary";
+type Phase = "mall" | "budget" | "wandering" | "shop" | "scratch" | "validation" | "summary";
+type PlayStyle = "quick" | "story";
 type PlayMode =
   | "direct"
   | "match"
@@ -292,6 +293,51 @@ const STORE_MOODS = [
   "晚饭前 · 两种彩票刚卖掉一截",
   "商场打烊前一小时 · 有些票已经售罄",
 ];
+
+const MALL_EVENTS = [
+  {
+    id: "milk-tea",
+    time: "17:46",
+    title: "先去取刚点好的奶茶",
+    scene: "杯壁还挂着水珠，你拎着奶茶重新经过彩票店。",
+    ownerLead: "奶茶先放右边，别碰到票。你刚才是不是已经在门口看了一圈？",
+  },
+  {
+    id: "arcade",
+    time: "17:51",
+    title: "在抓娃娃机旁看一会儿",
+    scene: "隔壁电玩区响了几轮庆祝音效，你一只娃娃也没抓到。",
+    ownerLead: "抓娃娃也没抓到吧？彩票更不能上头，先把预算说好。",
+  },
+  {
+    id: "supermarket",
+    time: "17:48",
+    title: "先把超市购物袋寄存",
+    scene: "服务台给了你一块寄存牌，双手空出来后轻松多了。",
+    ownerLead: "东西寄存好了再刮是对的，票面别被购物袋蹭坏。",
+  },
+  {
+    id: "friend",
+    time: "17:44",
+    title: "朋友发消息问你在哪",
+    scene: "你回了句“负一层随便逛逛”，没有提彩票店。",
+    ownerLead: "朋友还在等你？那就少拿几张，刮完别耽误约好的事。",
+  },
+  {
+    id: "queue",
+    time: "17:54",
+    title: "等前一位顾客验完票",
+    scene: "前面的人把一小摞票推过去，机器连续响了几声。",
+    ownerLead: "久等了。刚才那一摞有奖没奖都验完了，现在轮到你。",
+  },
+  {
+    id: "rain",
+    time: "18:02",
+    title: "商场广播说外面下雨了",
+    scene: "你暂时不急着走，顺着扶梯口又逛回彩票柜台。",
+    ownerLead: "外面正下雨，在店里慢慢看可以，预算还是先定死。",
+  },
+] as const;
 
 const SCRATCH_TOOLS: ScratchTool[] = [
   { id: "coin", name: "一元硬币", detail: "窄口 · 最细致", width: 17, glyph: "¥1" },
@@ -976,6 +1022,7 @@ function MallScene({ onEnter }: { onEnter: () => void }) {
 
 export default function Home() {
   const [phase, setPhase] = useState<Phase>("mall");
+  const [playStyle, setPlayStyle] = useState<PlayStyle>("story");
   const [budgetInput, setBudgetInput] = useState(100);
   const [isAdult, setIsAdult] = useState(false);
   const [initialBudget, setInitialBudget] = useState(0);
@@ -1000,6 +1047,11 @@ export default function Home() {
   const [storeTypeIds, setStoreTypeIds] = useState<string[]>(FEATURED_TICKET_IDS);
   const [priceFilter, setPriceFilter] = useState<"all" | 10 | 20 | 30 | 50>("all");
   const [catalogQuery, setCatalogQuery] = useState("");
+  const [mallEventOptions, setMallEventOptions] = useState(() =>
+    shuffle([...MALL_EVENTS]).slice(0, 3),
+  );
+  const [storyScene, setStoryScene] = useState("只是路过，老板还不认识你。");
+  const [storyTurn, setStoryTurn] = useState(0);
   const openBooksRef = useRef<Record<string, Book[]>>({});
   const sealedBooksRef = useRef<Record<string, number>>({});
 
@@ -1173,6 +1225,7 @@ export default function Home() {
         return;
       }
       charge(total);
+      if (playStyle === "story") setStoryTurn((value) => value + 1);
       addLog(`${sealedBook ? "整本" : `${count}张`} · ${type.name}`, -total, "spend");
       setOwnerLine(
         sealedBook
@@ -1185,7 +1238,17 @@ export default function Home() {
       );
       beginScratching(tickets);
     },
-    [addLog, beginScratching, canPay, charge, paySource, stock, syncStock, takeFromOpenBooks],
+    [
+      addLog,
+      beginScratching,
+      canPay,
+      charge,
+      paySource,
+      playStyle,
+      stock,
+      syncStock,
+      takeFromOpenBooks,
+    ],
   );
 
   const buyBlindBox = useCallback(() => {
@@ -1247,6 +1310,7 @@ export default function Home() {
     const total = validationQueue.reduce((sum, ticket) => sum + ticket.prize, 0);
     setLastVerified(validationQueue);
     setValidationQueue([]);
+    if (playStyle === "story") setStoryTurn((value) => value + 1);
     if (total > 0) {
       setPrizeBalance((value) => value + total);
       validationQueue.forEach((ticket) => {
@@ -1270,7 +1334,7 @@ export default function Home() {
       });
       setOwnerLine(pick(DIALOGUE.noPrize));
     }
-  }, [addLog, validationQueue]);
+  }, [addLog, playStyle, validationQueue]);
 
   const redeemAll = useCallback(() => {
     if (prizeBalance <= 0) return;
@@ -1342,9 +1406,12 @@ export default function Home() {
       });
     }
     syncStock();
+    setMallEventOptions(shuffle([...MALL_EVENTS]).slice(0, 3));
+    setStoryTurn(0);
+    setStoryScene("你在商场负一层多逛了一会儿，又绕回彩票柜台。");
     setOwnerLine(`${pick(DIALOGUE.greeting)} 你今天就按${formatMoney(budgetInput)}封顶。`);
-    setPhase("shop");
-  }, [budgetInput, isAdult, syncStock]);
+    setPhase(playStyle === "story" ? "wandering" : "shop");
+  }, [budgetInput, isAdult, playStyle, syncStock]);
 
   const resetGame = useCallback(() => {
     openBooksRef.current = {};
@@ -1367,9 +1434,13 @@ export default function Home() {
     setLastVerified([]);
     setLogs([]);
     setStock({});
+    setPlayStyle("story");
     setStoreTypeIds(FEATURED_TICKET_IDS);
     setPriceFilter("all");
     setCatalogQuery("");
+    setMallEventOptions(shuffle([...MALL_EVENTS]).slice(0, 3));
+    setStoryScene("只是路过，老板还不认识你。");
+    setStoryTurn(0);
     setOwnerLine(pick(DIALOGUE.greeting));
   }, []);
 
@@ -1405,6 +1476,26 @@ export default function Home() {
             <span className="eyebrow">进店先定上限</span>
             <h1>今天最多花多少？</h1>
             <p>只使用这笔模拟现金。花完不会自动充值，中奖也要先验票才能使用。</p>
+            <div className="play-style-picker">
+              <button
+                className={playStyle === "story" ? "selected" : ""}
+                onClick={() => setPlayStyle("story")}
+              >
+                <b>逛街剧情模式</b>
+                <span>先在商场走一段，再进店；本地对白，0 Token</span>
+              </button>
+              <button
+                className={playStyle === "quick" ? "selected" : ""}
+                onClick={() => setPlayStyle("quick")}
+              >
+                <b>快速进店</b>
+                <span>跳过额外剧情，直接选票刮奖</span>
+              </button>
+              <button className="llm-disabled" disabled>
+                <b>大模型闲聊 · 暂不接入</b>
+                <span>估算每局约 0.8–2 万输入 Token，还需要安全后端</span>
+              </button>
+            </div>
             <div className="budget-presets">
               {[50, 100, 300, 600].map((value) => (
                 <button
@@ -1448,6 +1539,48 @@ export default function Home() {
             </button>
             <button className="text-action" onClick={() => setPhase("mall")}>先不玩，回商场</button>
           </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (phase === "wandering") {
+    return (
+      <main className="wandering-screen">
+        <section className="wandering-card">
+          <header>
+            <span className="eyebrow">逛街剧情模式 · 本地运行 · 0 Token</span>
+            <h1>还没急着进店。<br />你在负一层又走了一圈。</h1>
+            <p>选择一段刚刚发生的小事。它只影响进店情境和老板对白，不会改变任何彩票结果。</p>
+          </header>
+          <div className="mall-event-list">
+            {mallEventOptions.map((event) => (
+              <button
+                key={event.id}
+                onClick={() => {
+                  setStoryScene(event.scene);
+                  setStoryTurn(1);
+                  setOwnerLine(`${event.ownerLead} ${pick(DIALOGUE.greeting)}`);
+                  setStoreMood(`${event.time} · ${event.scene}`);
+                  setPhase("shop");
+                }}
+              >
+                <span>{event.time}</span>
+                <b>{event.title}</b>
+                <small>{event.scene}</small>
+              </button>
+            ))}
+          </div>
+          <button
+            className="text-action"
+            onClick={() => {
+              setStoryScene("你没有继续闲逛，直接推开了彩票店的玻璃门。");
+              setOwnerLine(`${pick(DIALOGUE.greeting)} 先定预算，别临时加。`);
+              setPhase("shop");
+            }}
+          >
+            改主意了，直接进店
+          </button>
         </section>
       </main>
     );
@@ -1627,6 +1760,9 @@ export default function Home() {
         <div>
           <span className="eyebrow">{storeMood}</span>
           <h1>柜台今天不是满货。</h1>
+          {playStyle === "story" && (
+            <div className="story-status">本地剧情 · 0 Token · 情境第 {storyTurn} 段</div>
+          )}
         </div>
         <div className="session-stats">
           {stats.map((stat) => (
@@ -1648,6 +1784,13 @@ export default function Home() {
               <p>{ownerLine}</p>
             </div>
           </div>
+          {playStyle === "story" && (
+            <div className="story-memory">
+              <b>刚才在商场</b>
+              <p>{storyScene}</p>
+              <small>这段记忆只用于选择对白，不参与出票和验奖。</small>
+            </div>
+          )}
           <div className="pay-panel">
             <span>这次用什么付款？</span>
             <div>

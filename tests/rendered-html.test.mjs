@@ -25,7 +25,7 @@ async function render() {
   );
 }
 
-test("server-renders the v0.3 simulator shell and metadata", async () => {
+test("server-renders the v0.4 simulator shell and metadata", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
@@ -39,9 +39,10 @@ test("server-renders the v0.3 simulator shell and metadata", async () => {
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
-test("keeps slow scratching, multi-book picking and counter validation in source", async () => {
-  const [page, styles, research, roadmap, packageJson] = await Promise.all([
+test("keeps slow scratching, multi-book picking and 38-ticket catalog in source", async () => {
+  const [page, catalog, styles, research, roadmap, packageJson] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/ticket-catalog.ts", root), "utf8"),
     readFile(new URL("app/globals.css", root), "utf8"),
     readFile(new URL("docs/research.md", root), "utf8"),
     readFile(new URL("docs/ROADMAP.md", root), "utf8"),
@@ -65,12 +66,20 @@ test("keeps slow scratching, multi-book picking and counter validation in source
   assert.match(page, /openBooksRef/);
   assert.match(page, /自己从露出的单张里挑/);
   assert.doesNotMatch(page, /className={`ticket-cell cell-\$\{cell\.kind\}`}/);
+  assert.match(page, /总票库 \{CATALOG_SIZE\} 款/);
+  assert.match(page, /smallWinsPerBook/);
+  assert.match(catalog, /export const CATALOG_SIZE/);
+  assert.match(catalog, /name: "星光灿烂"/);
+  assert.match(catalog, /name: "盛世中华"/);
+  assert.match(catalog, /name: "金玉满堂"/);
+  assert.match(catalog, /name: "步步登高"/);
+  assert.match(catalog, /name: "正当红"/);
   assert.match(styles, /\.ticket-direct \.ticket-cell/);
   assert.match(styles, /\.validation-screen/);
   assert.match(research, /MZ\/T 076—2024/);
   assert.match(research, /64\.56%/);
   assert.match(research, /爱玩的小宋/);
-  assert.match(roadmap, /v0\.3/);
-  assert.equal(JSON.parse(packageJson).version, "0.3.0");
+  assert.match(roadmap, /v0\.4/);
+  assert.equal(JSON.parse(packageJson).version, "0.4.0");
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });

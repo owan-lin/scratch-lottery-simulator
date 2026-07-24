@@ -1,9 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CATALOG_SIZE,
+  TICKET_TYPES as CATALOG_TICKET_TYPES,
+  type PlayFamily,
+  type TicketDistribution,
+} from "./ticket-catalog";
 
 type Phase = "mall" | "budget" | "shop" | "scratch" | "validation" | "summary";
-type PlayMode = "direct" | "match" | "symbol" | "combo";
+type PlayMode =
+  | "direct"
+  | "match"
+  | "symbol"
+  | "combo"
+  | "triple"
+  | "compare"
+  | "add"
+  | "grid"
+  | "path";
 type PaySource = "cash" | "prize";
 type StockTone = "open" | "thin" | "last" | "sold";
 type ScratchToolId = "coin" | "small-scraper" | "wide-scraper";
@@ -39,6 +54,13 @@ type TicketType = {
   ink: string;
   accent: string;
   prizeTiers: PrizeTier[];
+  playFamily?: PlayFamily;
+  artSymbols?: string[];
+  variantCount?: number;
+  distribution?: TicketDistribution;
+  evidence?: "官方详规" | "官方介绍" | "官方目录";
+  sourceUrl?: string;
+  publishedWinRate?: number;
 };
 
 type TicketCell = {
@@ -83,7 +105,7 @@ type SessionLog = {
   tone: "spend" | "win" | "info";
 };
 
-const TICKET_TYPES: TicketType[] = [
+const BASE_TICKET_TYPES: TicketType[] = [
   {
     id: "tenfold",
     name: "好运十倍",
@@ -205,6 +227,11 @@ const TICKET_TYPES: TicketType[] = [
     ],
   },
 ];
+
+const TICKET_TYPES = CATALOG_TICKET_TYPES as TicketType[];
+const FEATURED_TICKET_IDS = BASE_TICKET_TYPES.map((type) =>
+  type.id === "meeting" ? "meeting-20" : type.id,
+);
 
 const DIALOGUE = {
   greeting: [
@@ -330,7 +357,9 @@ function makeMatchCells(type: TicketType, prize: number, winningNumbers: number[
 }
 
 function makeSymbolCells(type: TicketType, prize: number) {
-  const decoys = ["福", "缘", "顺", "安", "乐", "和", "春", "满"];
+  const decoys = type.artSymbols?.length
+    ? [...type.artSymbols, "缘", "顺", "安", "乐"]
+    : ["福", "缘", "顺", "安", "乐", "和", "春", "满"];
   const cells: TicketCell[] = Array.from({ length: type.opportunities }, () => ({
     label: pick(decoys),
     amount: pick(type.prizeTiers.slice(0, 5)).amount,
@@ -338,9 +367,17 @@ function makeSymbolCells(type: TicketType, prize: number) {
   }));
   if (prize <= 0) return cells;
   const index = randomInt(0, cells.length - 1);
-  const double = prize % 2 === 0 && Math.random() < 0.2;
+  const isMeeting = type.id.startsWith("meeting");
+  const isStar = type.id === "star-shine";
+  const double = isMeeting && prize % 2 === 0 && Math.random() < 0.2;
   cells[index] = {
-    label: double ? "囍" : "喜",
+    label: double
+      ? "囍"
+      : isMeeting
+        ? "阿喜"
+        : isStar
+          ? "星星"
+          : type.artSymbols?.[0] ?? "好运",
     amount: double ? prize / 2 : prize,
     kind: double ? "multiplier" : "winning",
   };
@@ -353,7 +390,7 @@ function makeDirectCells(type: TicketType, prize: number) {
     amount: 0,
     kind: "blank",
   }));
-  const luckyWin = prize > 0 && Math.random() < 0.18;
+  const luckyWin = type.id === "coast" && prize > 0 && Math.random() < 0.18;
   if (prize > 0 && !luckyWin) {
     cells[randomInt(0, cells.length - 1)] = {
       label: "",
@@ -361,6 +398,7 @@ function makeDirectCells(type: TicketType, prize: number) {
       kind: "winning",
     };
   }
+  if (type.id !== "coast") return cells;
   return [
     ...cells,
     {
@@ -373,7 +411,9 @@ function makeDirectCells(type: TicketType, prize: number) {
 }
 
 function makeComboCells(type: TicketType, prize: number, winningNumbers: number[]) {
-  const tripleSymbols = ["锦鲤", "福袋", "元宝", "莲花", "铜钱"];
+  const tripleSymbols = type.artSymbols?.length
+    ? [...type.artSymbols, "铜钱"]
+    : ["锦鲤", "福袋", "元宝", "莲花", "铜钱"];
   const cells: TicketCell[] = [];
   for (let i = 0; i < 3; i += 1) {
     const symbols = shuffle(tripleSymbols).slice(0, 3);
@@ -435,14 +475,128 @@ function makeComboCells(type: TicketType, prize: number, winningNumbers: number[
   return cells;
 }
 
+function makeTripleCells(type: TicketType, prize: number) {
+  const symbols = type.artSymbols?.length ? type.artSymbols : ["7", "星", "钻石", "皇冠"];
+  const cells: TicketCell[] = Array.from({ length: type.opportunities }, () => {
+    const first = pick(symbols);
+    const second = pick(symbols.filter((symbol) => symbol !== first));
+    return {
+      label: `${first} · ${second} · ${pick(symbols)}`,
+      amount: pick(type.prizeTiers.slice(0, 5)).amount,
+      kind: "plain",
+    };
+  });
+  if (prize > 0) {
+    const index = randomInt(0, cells.length - 1);
+    const symbol = pick(symbols);
+    cells[index] = {
+      label: `${symbol} · ${symbol} · ${symbol}`,
+      amount: prize,
+      kind: "winning",
+    };
+  }
+  return cells;
+}
+
+function makeCompareCells(type: TicketType, prize: number) {
+  const cells: TicketCell[] = Array.from({ length: Math.min(type.opportunities, 12) }, () => {
+    const mine = randomInt(1, 8);
+    const opponent = randomInt(mine + 1, 10);
+    return {
+      label: `我 ${mine} ｜ 对手 ${opponent}`,
+      amount: pick(type.prizeTiers.slice(0, 5)).amount,
+      kind: "plain",
+    };
+  });
+  if (prize > 0) {
+    const index = randomInt(0, cells.length - 1);
+    const opponent = randomInt(1, 7);
+    cells[index] = {
+      label: `我 ${randomInt(opponent + 1, 10)} ｜ 对手 ${opponent}`,
+      amount: prize,
+      kind: "winning",
+    };
+  }
+  return cells;
+}
+
+function makeAddCells(type: TicketType, prize: number) {
+  const cells: TicketCell[] = Array.from({ length: Math.min(type.opportunities, 12) }, () => {
+    const left = randomInt(1, 6);
+    let right = randomInt(1, 6);
+    if (left + right === 7) right = right === 6 ? 5 : right + 1;
+    return {
+      label: `${left} + ${right}`,
+      amount: pick(type.prizeTiers.slice(0, 5)).amount,
+      kind: "plain",
+    };
+  });
+  if (prize > 0) {
+    const index = randomInt(0, cells.length - 1);
+    const left = randomInt(1, 6);
+    cells[index] = { label: `${left} + ${7 - left}`, amount: prize, kind: "winning" };
+  }
+  return cells;
+}
+
+function makeGridCells(type: TicketType, prize: number) {
+  const symbols = type.artSymbols?.slice(0, 3) ?? ["花", "星", "果"];
+  const cells: TicketCell[] = Array.from({ length: 9 }, (_, index) => ({
+    label: symbols[(index + Math.floor(index / 3)) % symbols.length],
+    amount: index === 8 ? pick(type.prizeTiers.slice(0, 5)).amount : 0,
+    kind: "plain",
+  }));
+  if (prize > 0) {
+    const row = randomInt(0, 2);
+    const symbol = pick(symbols);
+    for (let column = 0; column < 3; column += 1) {
+      cells[row * 3 + column] = {
+        label: symbol,
+        amount: column === 2 ? prize : 0,
+        kind: "winning",
+      };
+    }
+  }
+  return cells;
+}
+
+function makePathCells(type: TicketType, prize: number) {
+  const symbols = type.artSymbols?.length ? type.artSymbols : ["起点", "台阶", "云海", "终点"];
+  const cells: TicketCell[] = Array.from({ length: Math.min(type.opportunities, 10) }, (_, index) => ({
+    label: `${index + 1} · ${pick(symbols)}`,
+    amount: 0,
+    kind: "plain",
+  }));
+  if (prize > 0) {
+    const index = randomInt(2, cells.length - 1);
+    cells[index] = { label: `${index + 1} · 抵达奖位`, amount: prize, kind: "winning" };
+  }
+  return cells;
+}
+
 function makeCells(type: TicketType, prize: number, winningNumbers: number[]) {
   if (type.mode === "direct") return makeDirectCells(type, prize);
   if (type.mode === "symbol") return makeSymbolCells(type, prize);
   if (type.mode === "combo") return makeComboCells(type, prize, winningNumbers);
+  if (type.mode === "triple") return makeTripleCells(type, prize);
+  if (type.mode === "compare") return makeCompareCells(type, prize);
+  if (type.mode === "add") return makeAddCells(type, prize);
+  if (type.mode === "grid") return makeGridCells(type, prize);
+  if (type.mode === "path") return makePathCells(type, prize);
   return makeMatchCells(type, prize, winningNumbers);
 }
 
 function makeBookPrizePool(type: TicketType) {
+  const model = type.distribution ?? {
+    targetReturn: 0.65,
+    smallWinsPerBook: [Math.ceil(type.bookSize * 0.27), Math.ceil(type.bookSize * 0.4)] as [
+      number,
+      number,
+    ],
+    hundredEveryBooks: 1.5,
+    jackpotEveryBooks: 50_000,
+    note: "体验模型",
+  };
   const profiles = [
     { value: 0.42, weight: 8 },
     { value: 0.52, weight: 22 },
@@ -451,24 +605,47 @@ function makeBookPrizePool(type: TicketType) {
     { value: 0.88, weight: 9 },
     { value: 1.16, weight: 3 },
   ];
-  let remaining =
-    Math.round(
-      (type.price * type.bookSize * weightedPick(profiles).value) / type.price,
-    ) * type.price;
-  const prizes: number[] = [];
-  while (remaining >= type.price && prizes.length < type.bookSize) {
+  const profile = weightedPick(profiles).value;
+  const target = Math.max(
+    type.price,
+    Math.round((type.price * type.bookSize * profile) / type.price) * type.price,
+  );
+  const winCount = Math.min(
+    type.bookSize - 1,
+    randomInt(model.smallWinsPerBook[0], model.smallWinsPerBook[1]),
+  );
+  const prizes = Array.from({ length: winCount }, () => type.price);
+  let remaining = Math.max(0, target - winCount * type.price);
+
+  if (Math.random() < 1 / model.hundredEveryBooks && prizes.length > 0) {
+    const hundredTier =
+      type.prizeTiers.find((tier) => tier.amount >= 100 && tier.amount <= 500)?.amount ?? 100;
+    if (hundredTier - type.price <= remaining) {
+      prizes[randomInt(0, prizes.length - 1)] = hundredTier;
+      remaining -= hundredTier - type.price;
+    }
+  }
+
+  let guard = 0;
+  while (remaining >= type.price && guard < 200 && prizes.length > 0) {
+    guard += 1;
+    const index = randomInt(0, prizes.length - 1);
+    const current = prizes[index];
     const candidates = type.prizeTiers.filter(
-      (tier) => tier.amount <= remaining && tier.amount < type.topPrize,
+      (tier) =>
+        tier.amount > current &&
+        tier.amount - current <= remaining &&
+        tier.amount < type.topPrize &&
+        tier.amount <= 1_000,
     );
     if (candidates.length === 0) break;
     const chosen = weightedPick(candidates).amount;
-    prizes.push(chosen);
-    remaining -= chosen;
+    prizes[index] = chosen;
+    remaining -= chosen - current;
   }
   while (prizes.length < type.bookSize) prizes.push(0);
 
-  const jackpotChance = type.topPrize >= 800_000 ? 0.000025 : 0.00005;
-  if (Math.random() < jackpotChance) {
+  if (Math.random() < 1 / model.jackpotEveryBooks) {
     const zeroIndex = prizes.findIndex((prize) => prize === 0);
     prizes[zeroIndex >= 0 ? zeroIndex : prizes.length - 1] = type.topPrize;
   }
@@ -636,10 +813,18 @@ function ScratchLayer({
 
 function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
   if (type.mode === "combo") {
+    const titles =
+      type.id === "golden-chest"
+        ? ["玩法一 · 金额即中", "玩法二 · 两同图符", "宝箱加奖区"]
+        : type.id === "big-winner"
+          ? ["玩法一 · 奖金即中", "玩法二 · 通吃图符", "号码比对区"]
+          : type.id === "luxury-seven"
+            ? ["玩法一 · 三同图", "玩法二 · 7倍图符", "数字比对区"]
+            : ["玩法一 · 三同图", "玩法二 · 好运图符", "玩法三 · 对数字"];
     const groups = [
-      { id: "triple", title: "玩法一 · 三同图" },
-      { id: "instant", title: "玩法二 · 好运图符" },
-      { id: "numbers", title: "玩法三 · 对数字" },
+      { id: "triple", title: titles[0] },
+      { id: "instant", title: titles[1] },
+      { id: "numbers", title: titles[2] },
     ] as const;
     return (
       <div className="combo-games">
@@ -683,7 +868,7 @@ function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
           </div>
         ))}
       </div>
-      {type.mode === "direct" && (
+      {type.mode === "direct" && type.id === "coast" && (
         <div className="lucky-play">
           <b>幸运玩法</b>
           <span>
@@ -723,6 +908,11 @@ function TicketFace({
     >
       <div className="ticket-watermark">仿真练习票 · 无兑奖价值</div>
       <div className="ticket-decoration" aria-hidden="true" />
+      <div className="ticket-art-motifs" aria-hidden="true">
+        {(type.artSymbols ?? []).slice(0, 4).map((symbol) => (
+          <span key={symbol}>{symbol}</span>
+        ))}
+      </div>
       <header className="ticket-head">
         <div>
           <span className="ticket-issuer">{type.issuer} · 原型仿真</span>
@@ -807,6 +997,9 @@ export default function Home() {
   const [lastVerified, setLastVerified] = useState<Ticket[]>([]);
   const [logs, setLogs] = useState<SessionLog[]>([]);
   const [stock, setStock] = useState<Record<string, PublicStock>>({});
+  const [storeTypeIds, setStoreTypeIds] = useState<string[]>(FEATURED_TICKET_IDS);
+  const [priceFilter, setPriceFilter] = useState<"all" | 10 | 20 | 30 | 50>("all");
+  const [catalogQuery, setCatalogQuery] = useState("");
   const openBooksRef = useRef<Record<string, Book[]>>({});
   const sealedBooksRef = useRef<Record<string, number>>({});
 
@@ -815,6 +1008,21 @@ export default function Home() {
     ? TICKET_TYPES.find((type) => type.id === activeTicket.typeId)
     : undefined;
   const scratchTool = SCRATCH_TOOLS.find((tool) => tool.id === scratchToolId) ?? SCRATCH_TOOLS[1];
+  const storeTypes = useMemo(
+    () => TICKET_TYPES.filter((type) => storeTypeIds.includes(type.id)),
+    [storeTypeIds],
+  );
+  const filteredStoreTypes = useMemo(() => {
+    const query = catalogQuery.trim().toLowerCase();
+    return storeTypes.filter(
+      (type) =>
+        (priceFilter === "all" || type.price === priceFilter) &&
+        (!query ||
+          type.name.toLowerCase().includes(query) ||
+          type.playFamily?.toLowerCase().includes(query) ||
+          type.design.toLowerCase().includes(query)),
+    );
+  }, [catalogQuery, priceFilter, storeTypes]);
 
   const addLog = useCallback((label: string, amount: number, tone: SessionLog["tone"]) => {
     setLogs((current) => [
@@ -986,10 +1194,10 @@ export default function Home() {
       return;
     }
     const patterns = [
-      [["tenfold", 4], ["meeting", 3]],
-      [["fortune", 2], ["meeting", 2]],
-      [["coast", 4], ["meeting", 3]],
-      [["fortune", 1], ["meeting", 2], ["tenfold", 3]],
+      [["tenfold", 4], ["meeting-20", 3]],
+      [["fortune", 2], ["meeting-20", 2]],
+      [["coast", 4], ["meeting-20", 3]],
+      [["fortune", 1], ["meeting-20", 2], ["tenfold", 3]],
     ] as const;
     const possible = patterns.filter((pattern) =>
       pattern.every(([id, count]) => {
@@ -1090,9 +1298,24 @@ export default function Home() {
     setInitialBudget(budgetInput);
     setWallet(budgetInput);
     setStoreMood(pick(STORE_MOODS));
+    const balanced = [10, 20, 30, 50]
+      .map((price) => pick(TICKET_TYPES.filter((type) => type.price === price)))
+      .filter(Boolean);
+    const chosenTypes = [
+      ...TICKET_TYPES.filter((type) => FEATURED_TICKET_IDS.includes(type.id)),
+      ...balanced,
+      ...shuffle(TICKET_TYPES),
+    ]
+      .filter(
+        (type, index, values) => values.findIndex((candidate) => candidate.id === type.id) === index,
+      )
+      .slice(0, 14);
+    const chosenIds = chosenTypes.map((type) => type.id);
+    setStoreTypeIds(chosenIds);
+    setBookRequestId(chosenIds[0] ?? TICKET_TYPES[0].id);
     let availableCount = 0;
-    TICKET_TYPES.forEach((type, index) => {
-      const inStock = Math.random() > 0.18 || index === 0;
+    TICKET_TYPES.forEach((type) => {
+      const inStock = chosenIds.includes(type.id) && Math.random() > 0.12;
       if (inStock) {
         const openBookCount = randomInt(2, 4);
         openBooksRef.current[type.id] = Array.from({ length: openBookCount }, () => {
@@ -1107,8 +1330,8 @@ export default function Home() {
         sealedBooksRef.current[type.id] = 0;
       }
     });
-    if (availableCount < 3) {
-      TICKET_TYPES.slice(0, 3).forEach((type) => {
+    if (availableCount < 8) {
+      chosenTypes.slice(0, 8).forEach((type) => {
         if ((openBooksRef.current[type.id] ?? []).length === 0) {
           openBooksRef.current[type.id] = Array.from({ length: 2 }, () => {
             const book = createBook(type);
@@ -1144,6 +1367,9 @@ export default function Home() {
     setLastVerified([]);
     setLogs([]);
     setStock({});
+    setStoreTypeIds(FEATURED_TICKET_IDS);
+    setPriceFilter("all");
+    setCatalogQuery("");
     setOwnerLine(pick(DIALOGUE.greeting));
   }, []);
 
@@ -1446,7 +1672,7 @@ export default function Home() {
               onChange={(event) => setBookRequestId(event.target.value)}
               aria-label="选择想询问的整本彩票"
             >
-              {TICKET_TYPES.map((type) => (
+              {storeTypes.map((type) => (
                 <option key={type.id} value={type.id}>
                   {type.name} · {formatMoney(type.price * type.bookSize)}
                 </option>
@@ -1488,10 +1714,31 @@ export default function Home() {
                 看不见每个开本还剩多少张。
               </p>
             </div>
-            <span className="model-badge">店况随机</span>
+            <span className="model-badge">总票库 {CATALOG_SIZE} 款 · 今日上架 {storeTypes.length} 款</span>
+          </div>
+          <div className="catalog-controls">
+            <label>
+              <span>找票</span>
+              <input
+                value={catalogQuery}
+                onChange={(event) => setCatalogQuery(event.target.value)}
+                placeholder="票名、玩法或图案"
+              />
+            </label>
+            <div aria-label="按面值筛选">
+              {(["all", 10, 20, 30, 50] as const).map((price) => (
+                <button
+                  className={priceFilter === price ? "active" : ""}
+                  key={price}
+                  onClick={() => setPriceFilter(price)}
+                >
+                  {price === "all" ? "全部" : `${price}元`}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="ticket-products">
-            {TICKET_TYPES.map((type) => {
+            {filteredStoreTypes.map((type) => {
               const available = paySource === "cash" ? wallet : prizeBalance;
               const itemStock = stock[type.id] ?? {
                 tone: "sold" as const,
@@ -1519,12 +1766,31 @@ export default function Home() {
                     <p>{type.subtitle}</p>
                     <strong>{formatMoney(type.price)}</strong>
                     <i>最高 {formatMoney(type.topPrize)}</i>
-                    <em>{type.opportunityLabel ?? `${type.opportunities}次机会`} · {type.prizeTierCount}个奖级</em>
+                    <em>
+                      {type.opportunityLabel ?? `${type.opportunities}次机会`} · {type.prizeTierCount}个奖级
+                      {type.playFamily ? ` · ${type.playFamily}` : ""}
+                    </em>
                   </div>
                   <div className="product-detail">
                     <div className={`stock-badge ${itemStock.tone}`}>{itemStock.label}</div>
                     <p>{type.mechanic}</p>
                     <div className="design-note">{type.design}</div>
+                    {type.distribution && (
+                      <div className="distribution-note">
+                        <b>{type.evidence ?? "规则资料"} · 整本体验模型</b>
+                        <span>
+                          一般每本约 {type.distribution.smallWinsPerBook[0]}–
+                          {type.distribution.smallWinsPerBook[1]} 张中小奖
+                        </span>
+                        <span>
+                          百元档约每 {type.distribution.hundredEveryBooks} 本出现 1 张
+                        </span>
+                        <small>
+                          头奖尾部约 {money.format(type.distribution.jackpotEveryBooks)} 本 1 张；
+                          不是官方逐本承诺
+                        </small>
+                      </div>
+                    )}
                     <div className="loose-ticket-picks">
                       <span>自己从露出的单张里挑</span>
                       <div>

@@ -25,7 +25,7 @@ async function render() {
   );
 }
 
-test("server-renders the v0.5 simulator shell and metadata", async () => {
+test("server-renders the v0.5.1 simulator shell and metadata", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
@@ -86,6 +86,6 @@ test("keeps the 38-ticket catalog and zero-token story mode in source", async ()
   assert.match(research, /64\.56%/);
   assert.match(research, /爱玩的小宋/);
   assert.match(roadmap, /v0\.5/);
-  assert.equal(JSON.parse(packageJson).version, "0.5.0");
+  assert.equal(JSON.parse(packageJson).version, "0.5.1");
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });

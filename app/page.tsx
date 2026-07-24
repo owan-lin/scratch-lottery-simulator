@@ -7,6 +7,7 @@ import {
   type PlayFamily,
   type TicketDistribution,
 } from "./ticket-catalog";
+import { calculateMeetingPrize, makeMeetingCells } from "./meeting-prize.js";
 
 type Phase = "mall" | "budget" | "wandering" | "shop" | "scratch" | "validation" | "summary";
 type PlayStyle = "quick" | "story";
@@ -403,9 +404,29 @@ function makeMatchCells(type: TicketType, prize: number, winningNumbers: number[
 }
 
 function makeSymbolCells(type: TicketType, prize: number) {
-  const decoys = type.artSymbols?.length
-    ? [...type.artSymbols, "缘", "顺", "安", "乐"]
-    : ["福", "缘", "顺", "安", "乐", "和", "春", "满"];
+  const isMeeting = type.id.startsWith("meeting");
+  if (isMeeting) {
+    return makeMeetingCells({
+      opportunities: type.opportunities,
+      prize,
+      prizeAmounts: type.prizeTiers.slice(0, 5).map((tier) => tier.amount),
+      artSymbols: type.artSymbols ?? [],
+    }) as TicketCell[];
+  }
+
+  const isStar = type.id === "star-shine";
+  const winningLabel = isStar ? "体彩" : type.artSymbols?.[0] ?? "好运";
+  const blocked = new Set([winningLabel, ...(isStar ? ["星星"] : [])]);
+  const decoys = [
+    ...(type.artSymbols ?? []),
+    "缘",
+    "顺",
+    "安",
+    "乐",
+    "和",
+    "春",
+    "满",
+  ].filter((symbol, index, values) => !blocked.has(symbol) && values.indexOf(symbol) === index);
   const cells: TicketCell[] = Array.from({ length: type.opportunities }, () => ({
     label: pick(decoys),
     amount: pick(type.prizeTiers.slice(0, 5)).amount,
@@ -413,19 +434,10 @@ function makeSymbolCells(type: TicketType, prize: number) {
   }));
   if (prize <= 0) return cells;
   const index = randomInt(0, cells.length - 1);
-  const isMeeting = type.id.startsWith("meeting");
-  const isStar = type.id === "star-shine";
-  const double = isMeeting && prize % 2 === 0 && Math.random() < 0.2;
   cells[index] = {
-    label: double
-      ? "囍"
-      : isMeeting
-        ? "阿喜"
-        : isStar
-          ? "星星"
-          : type.artSymbols?.[0] ?? "好运",
-    amount: double ? prize / 2 : prize,
-    kind: double ? "multiplier" : "winning",
+    label: winningLabel,
+    amount: prize,
+    kind: "winning",
   };
   return cells;
 }
@@ -706,15 +718,19 @@ function createBook(type: TicketType): Book {
   const prizePool = makeBookPrizePool(type);
   const tickets = prizePool.map((prize, index) => {
     const winningNumbers = makeWinningNumbers(type.mode === "combo" ? 2 : 1);
+    const cells = makeCells(type, prize, winningNumbers);
+    const visiblePrize = type.id.startsWith("meeting")
+      ? calculateMeetingPrize(cells)
+      : prize;
     return {
       id: `${bookId}-${index + 1}`,
       typeId: type.id,
       bookId,
       bookIndex: index + 1,
       bookSize: type.bookSize,
-      prize,
+      prize: visiblePrize,
       winningNumbers,
-      cells: makeCells(type, prize, winningNumbers),
+      cells,
       validationCode: String(randomInt(1000, 9999)),
     };
   });

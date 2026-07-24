@@ -25,7 +25,7 @@ async function render() {
   );
 }
 
-test("server-renders the lottery simulator shell", async () => {
+test("server-renders the v0.2 simulator shell and metadata", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
@@ -34,25 +34,37 @@ test("server-renders the lottery simulator shell", async () => {
   assert.match(html, /<title>幸运彩票站｜中国即开票体验模拟器<\/title>/i);
   assert.match(html, /逛着逛着/);
   assert.match(html, /进去看看/);
-  assert.match(html, /不连接真实彩票/);
+  assert.match(html, /不使用真钱/);
+  assert.match(html, /og\.png/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
-test("keeps realism and responsible-play requirements in source", async () => {
-  const [page, research, roadmap, packageJson] = await Promise.all([
+test("keeps slow scratching, counter validation and hidden stock in source", async () => {
+  const [page, styles, research, roadmap, packageJson] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/globals.css", root), "utf8"),
     readFile(new URL("docs/research.md", root), "utf8"),
     readFile(new URL("docs/ROADMAP.md", root), "utf8"),
     readFile(new URL("package.json", root), "utf8"),
   ]);
 
-  assert.match(page, /整本预生成模型/);
-  assert.match(page, /未成年人不得购彩/);
-  assert.match(page, /奖金换票/);
-  assert.match(page, /100元惊喜包/);
-  assert.match(page, /createBook\(type\)/);
-  assert.match(research, /65%/);
+  assert.match(page, /context\.lineWidth = 17/);
+  assert.match(page, /progress >= 72/);
+  assert.match(page, /拿给老板验票/);
+  assert.match(page, /请老板逐张验票/);
+  assert.match(page, /保安区/);
+  assert.match(page, /好运十倍/);
+  assert.match(page, /喜相逢/);
+  assert.match(page, /好运来/);
+  assert.match(page, /一路向海/);
+  assert.match(page, /看不到整本还剩几张/);
+  assert.match(page, /kind: "blank"/);
+  assert.match(styles, /\.ticket-direct \.ticket-cell/);
+  assert.match(styles, /\.validation-screen/);
+  assert.match(research, /MZ\/T 076—2024/);
+  assert.match(research, /64\.56%/);
   assert.match(research, /爱玩的小宋/);
   assert.match(roadmap, /v0\.2/);
+  assert.equal(JSON.parse(packageJson).version, "0.2.0");
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });

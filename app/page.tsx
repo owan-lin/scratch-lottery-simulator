@@ -2,35 +2,41 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-type Phase = "mall" | "budget" | "shop" | "scratch" | "summary";
-type PlayMode = "amount" | "match" | "symbols" | "hybrid";
+type Phase = "mall" | "budget" | "shop" | "scratch" | "validation" | "summary";
+type PlayMode = "direct" | "match" | "symbol" | "combo";
 type PaySource = "cash" | "prize";
+type StockTone = "open" | "thin" | "last" | "sold";
 
-type PrizeBand = {
+type PrizeTier = {
   amount: number;
-  probability: number;
+  weight: number;
 };
 
 type TicketType = {
   id: string;
   name: string;
   subtitle: string;
-  issuer: "福彩风格" | "体彩风格";
+  issuer: "中国福利彩票" | "中国体育彩票";
   price: number;
   bookSize: number;
+  opportunities: number;
+  opportunityLabel?: string;
+  prizeTierCount: number;
   topPrize: number;
   mode: PlayMode;
   mechanic: string;
+  design: string;
   color: string;
   ink: string;
   accent: string;
-  prizeBands: PrizeBand[];
+  prizeTiers: PrizeTier[];
 };
 
 type TicketCell = {
   label: string;
   amount: number;
-  kind: "plain" | "match" | "bonus" | "decoy";
+  kind: "blank" | "plain" | "winning" | "multiplier";
+  section?: "triple" | "instant" | "numbers" | "lucky";
 };
 
 type Ticket = {
@@ -42,6 +48,7 @@ type Ticket = {
   prize: number;
   winningNumbers: number[];
   cells: TicketCell[];
+  validationCode: string;
 };
 
 type Book = {
@@ -49,6 +56,13 @@ type Book = {
   typeId: string;
   tickets: Ticket[];
   cursor: number;
+};
+
+type PublicStock = {
+  tone: StockTone;
+  label: string;
+  canSell: boolean;
+  hasSealed: boolean;
 };
 
 type SessionLog = {
@@ -60,101 +74,185 @@ type SessionLog = {
 
 const TICKET_TYPES: TicketType[] = [
   {
-    id: "little-luck",
-    name: "好运小满",
-    subtitle: "三格漫画票",
-    issuer: "体彩风格",
-    price: 5,
-    bookSize: 120,
-    topPrize: 100_000,
-    mode: "amount",
-    mechanic: "刮出奖金标志，所见即所得，奖金兼中兼得",
-    color: "#f5d76e",
-    ink: "#4f2b18",
-    accent: "#e94b35",
-    prizeBands: [
-      { amount: 5, probability: 0.19 },
-      { amount: 10, probability: 0.06 },
-      { amount: 20, probability: 0.025 },
-      { amount: 50, probability: 0.012 },
-      { amount: 100, probability: 0.003 },
-      { amount: 500, probability: 0.0004 },
-      { amount: 5_000, probability: 0.00002 },
-      { amount: 100_000, probability: 0.000001 },
-    ],
-  },
-  {
     id: "tenfold",
     name: "好运十倍",
-    subtitle: "经典对数字",
-    issuer: "福彩风格",
+    subtitle: "经典数字对碰",
+    issuer: "中国福利彩票",
     price: 10,
     bookSize: 50,
+    opportunities: 10,
+    prizeTierCount: 12,
     topPrize: 400_000,
     mode: "match",
-    mechanic: "我的号码对上中奖号码即中奖；刮出“10×”奖金翻十倍",
-    color: "#d9392f",
-    ink: "#fff8df",
-    accent: "#ffd45a",
-    prizeBands: [
-      { amount: 10, probability: 0.2 },
-      { amount: 20, probability: 0.06 },
-      { amount: 50, probability: 0.025 },
-      { amount: 100, probability: 0.008 },
-      { amount: 500, probability: 0.0008 },
-      { amount: 5_000, probability: 0.00008 },
-      { amount: 400_000, probability: 0.000001 },
+    mechanic: "任意“我的号码”与“中奖号码”相同，中得同行奖金；出现“10”标志，奖金乘十。",
+    design: "红金底、铜钱暗纹、单个中奖号码与十行对数字",
+    color: "#ba201f",
+    ink: "#fff3ca",
+    accent: "#f2c14a",
+    prizeTiers: [
+      { amount: 10, weight: 42 },
+      { amount: 20, weight: 26 },
+      { amount: 30, weight: 18 },
+      { amount: 40, weight: 16 },
+      { amount: 50, weight: 15 },
+      { amount: 100, weight: 8 },
+      { amount: 200, weight: 4 },
+      { amount: 500, weight: 2 },
+      { amount: 1_000, weight: 1.1 },
+      { amount: 5_000, weight: 0.35 },
+      { amount: 10_000, weight: 0.12 },
+      { amount: 400_000, weight: 0.0008 },
     ],
   },
   {
-    id: "horse",
-    name: "马到功成",
-    subtitle: "符号寻宝票",
-    issuer: "体彩风格",
+    id: "meeting",
+    name: "喜相逢",
+    subtitle: "20元 · 喜字即中",
+    issuer: "中国福利彩票",
     price: 20,
-    bookSize: 30,
-    topPrize: 1_000_000,
-    mode: "symbols",
-    mechanic: "出现马标志中得奖金；祥云翻倍；“功成”赢取全区奖金",
-    color: "#1c5d74",
-    ink: "#f7ead0",
-    accent: "#f28d52",
-    prizeBands: [
-      { amount: 20, probability: 0.18 },
-      { amount: 40, probability: 0.07 },
-      { amount: 100, probability: 0.03 },
-      { amount: 200, probability: 0.01 },
-      { amount: 500, probability: 0.002 },
-      { amount: 1_000, probability: 0.0005 },
-      { amount: 10_000, probability: 0.00004 },
-      { amount: 1_000_000, probability: 0.0000002 },
+    bookSize: 25,
+    opportunities: 25,
+    prizeTierCount: 10,
+    topPrize: 800_000,
+    mode: "symbol",
+    mechanic: "刮出“喜”中得下方奖金；刮出“囍”中得下方奖金的两倍，奖金兼中兼得。",
+    design: "红蓝双边、祥云仙鹤、满版祝福语与二十五格奖符",
+    color: "#194e83",
+    ink: "#fff6dc",
+    accent: "#e44035",
+    prizeTiers: [
+      { amount: 20, weight: 42 },
+      { amount: 40, weight: 25 },
+      { amount: 100, weight: 16 },
+      { amount: 200, weight: 8 },
+      { amount: 500, weight: 4 },
+      { amount: 1_000, weight: 2 },
+      { amount: 5_000, weight: 0.65 },
+      { amount: 10_000, weight: 0.2 },
+      { amount: 100_000, weight: 0.03 },
+      { amount: 800_000, weight: 0.0005 },
     ],
   },
   {
-    id: "grand",
-    name: "商场大满贯",
-    subtitle: "双区复合票",
-    issuer: "体彩风格",
-    price: 50,
-    bookSize: 12,
-    topPrize: 1_000_000,
-    mode: "hybrid",
-    mechanic: "奖金标志直接中；号码匹配中对应奖金；奖杯标志可翻倍",
-    color: "#532971",
-    ink: "#fff5dd",
-    accent: "#f4b63e",
-    prizeBands: [
-      { amount: 50, probability: 0.18 },
-      { amount: 100, probability: 0.07 },
-      { amount: 200, probability: 0.025 },
-      { amount: 500, probability: 0.008 },
-      { amount: 1_000, probability: 0.002 },
-      { amount: 5_000, probability: 0.0003 },
-      { amount: 10_000, probability: 0.00015 },
-      { amount: 100_000, probability: 0.00001 },
-      { amount: 1_000_000, probability: 0.000001 },
+    id: "fortune",
+    name: "好运来",
+    subtitle: "30元 · 三玩法",
+    issuer: "中国福利彩票",
+    price: 30,
+    bookSize: 20,
+    opportunities: 18,
+    prizeTierCount: 11,
+    topPrize: 800_000,
+    mode: "combo",
+    mechanic: "三同图、图符即中和对数字三种玩法同在一张票上，三个区域奖金兼中兼得。",
+    design: "红金锦鲤、福袋与金元宝，三块独立刮开区",
+    color: "#be2b20",
+    ink: "#fff2ca",
+    accent: "#f4c34e",
+    prizeTiers: [
+      { amount: 30, weight: 38 },
+      { amount: 60, weight: 24 },
+      { amount: 100, weight: 16 },
+      { amount: 200, weight: 10 },
+      { amount: 500, weight: 5 },
+      { amount: 1_000, weight: 2.5 },
+      { amount: 5_000, weight: 0.8 },
+      { amount: 10_000, weight: 0.25 },
+      { amount: 50_000, weight: 0.05 },
+      { amount: 100_000, weight: 0.02 },
+      { amount: 800_000, weight: 0.0005 },
     ],
   },
+  {
+    id: "coast",
+    name: "一路向海",
+    subtitle: "10元 · 海南环岛主题",
+    issuer: "中国体育彩票",
+    price: 10,
+    bookSize: 50,
+    opportunities: 15,
+    opportunityLabel: "主玩法 + 幸运玩法",
+    prizeTierCount: 10,
+    topPrize: 250_000,
+    mode: "direct",
+    mechanic: "主玩法刮出奖金金额即中得该奖金；幸运玩法刮出奖金标志即中。没有中奖的位置刮开后就是空白。",
+    design: "海岛公路、椰树与落日，共十五款沿线风景票面",
+    color: "#087c85",
+    ink: "#fff8dc",
+    accent: "#f3a24b",
+    prizeTiers: [
+      { amount: 10, weight: 44 },
+      { amount: 20, weight: 26 },
+      { amount: 50, weight: 15 },
+      { amount: 100, weight: 8 },
+      { amount: 200, weight: 3.5 },
+      { amount: 500, weight: 1.6 },
+      { amount: 1_000, weight: 0.7 },
+      { amount: 5_000, weight: 0.16 },
+      { amount: 10_000, weight: 0.05 },
+      { amount: 250_000, weight: 0.0008 },
+    ],
+  },
+];
+
+const DIALOGUE = {
+  greeting: [
+    "先随便看，别急着拿。今天柜台上的票有的已经卖掉半本了。",
+    "刚有人刮完一摞，桌面上还有点碎屑。你先看看想玩哪种。",
+    "新票和老票都有，架上没有的不一定是卖完了，我得去柜子里找。",
+    "今天商场人不多。还是先定预算，花到数就停。",
+  ],
+  smallBuy: [
+    "给你从正在卖的这本接着拿，流水号是连着的。",
+    "拿好了，别刮到下面写着“保安区刮开无效”的地方。",
+    "硬币在纸杯旁边。慢慢刮，别一上来就把票刮破了。",
+    "这几张是架上顺着抽的，我没给你挑号。",
+  ],
+  manyBuy: [
+    "张数不少，我从同一本里连着给你拿。预算记着点。",
+    "这一摞先刮完再说，不着急往上加。",
+    "都从当前这包里顺着出，号码只是流水号，不代表中奖规律。",
+  ],
+  wholeBook: [
+    "整本封条给你当面拆，票按流水号顺序排好，别弄乱。",
+    "这是未拆封的一本。整本也不等于保本，只是一次把同包票拿完。",
+    "先说好，整本的返奖也会波动，不存在每本固定回多少。",
+  ],
+  scratch: [
+    "覆盖膜要来回刮。只碰一下可看不清号码。",
+    "刮屑往一边扫，先把玩法区的信息都露出来。",
+    "自己先按规则看，但最终还是拿过来扫保安区验票。",
+  ],
+  noPrize: [
+    "机器没报码，这张没有。别因为刚没中就追着加张数。",
+    "这张没出，桌上剩下的慢慢刮，预算别动。",
+    "没有奖。票留这边，我再帮你核一遍也一样。",
+  ],
+  win: [
+    "扫出来有奖。你可以直接兑，也可以拿同面值的票，自己选。",
+    "这张中了。先把钱记在柜台账上，等你决定收钱还是换票。",
+    "有回票钱。别急着全换，中奖不代表下一张更容易中。",
+  ],
+  exact: [
+    "正好回本一张。要不要换同价票都行，不换就拿现金。",
+    "中了票面价。很多人这时候会再拿一张，你也可以就此收手。",
+  ],
+  upsell: [
+    "要不要拿张同价的试试？先说好，只从这笔奖金里出，不加预算。",
+    "这笔奖金刚好够换一张，不过收进钱包也挺好。",
+    "还想玩就按原预算来，别临时往里添。",
+  ],
+  big: [
+    "这个金额店里只负责验票，票先别折，按票背说明去指定地点兑。",
+    "先把票收好。金额大了不能在柜台直接付，要带证件去兑奖。",
+  ],
+};
+
+const STORE_MOODS = [
+  "周六傍晚 · 柜台刚送走一位顾客",
+  "工作日午后 · 店里只有你和老板",
+  "晚饭前 · 两种彩票刚卖掉一截",
+  "商场打烊前一小时 · 有些票已经售罄",
 ];
 
 const money = new Intl.NumberFormat("zh-CN");
@@ -167,6 +265,10 @@ function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function pick<T>(items: readonly T[]) {
+  return items[randomInt(0, items.length - 1)];
+}
+
 function shuffle<T>(items: T[]) {
   const clone = [...items];
   for (let i = clone.length - 1; i > 0; i -= 1) {
@@ -176,75 +278,194 @@ function shuffle<T>(items: T[]) {
   return clone;
 }
 
-function drawPrize(type: TicketType) {
-  const roll = Math.random();
-  let cursor = 0;
-  for (const band of type.prizeBands) {
-    cursor += band.probability;
-    if (roll < cursor) return band.amount;
+function weightedPick<T extends { weight: number }>(items: T[]) {
+  const total = items.reduce((sum, item) => sum + item.weight, 0);
+  let roll = Math.random() * total;
+  for (const item of items) {
+    roll -= item.weight;
+    if (roll <= 0) return item;
   }
-  return 0;
+  return items[items.length - 1];
 }
 
-function makeWinningNumbers() {
-  return shuffle(Array.from({ length: 30 }, (_, index) => index + 1)).slice(0, 3);
+function makeWinningNumbers(count: number) {
+  return shuffle(Array.from({ length: 50 }, (_, index) => index + 1)).slice(0, count);
 }
 
-function makeCells(type: TicketType, prize: number, winningNumbers: number[]) {
-  const count = type.mode === "symbols" ? 20 : type.mode === "hybrid" ? 16 : 10;
-  const nonWinningNumbers = Array.from({ length: 30 }, (_, index) => index + 1).filter(
+function makeMatchCells(type: TicketType, prize: number, winningNumbers: number[]) {
+  const nonWinning = Array.from({ length: 50 }, (_, index) => index + 1).filter(
     (number) => !winningNumbers.includes(number),
   );
-  const cells: TicketCell[] = Array.from({ length: count }, () => ({
-    label:
-      type.mode === "symbols"
-        ? shuffle(["元宝", "灯笼", "如意", "铜钱", "福袋"])[0]
-        : String(nonWinningNumbers[randomInt(0, nonWinningNumbers.length - 1)]),
-    amount: shuffle([type.price, type.price * 2, type.price * 5, type.price * 10])[0],
-    kind: "decoy",
+  const cells: TicketCell[] = Array.from({ length: type.opportunities }, () => ({
+    label: String(pick(nonWinning)),
+    amount: pick(type.prizeTiers.slice(0, 5)).amount,
+    kind: "plain",
   }));
-
   if (prize <= 0) return cells;
-
-  const winningIndex = randomInt(0, cells.length - 1);
-  if (type.mode === "match") {
-    const useTenfold = prize >= type.price * 10 && prize % 10 === 0 && Math.random() < 0.24;
-    cells[winningIndex] = {
-      label: useTenfold ? "10×" : String(winningNumbers[0]),
-      amount: useTenfold ? prize / 10 : prize,
-      kind: useTenfold ? "bonus" : "match",
-    };
-  } else if (type.mode === "symbols") {
-    const useDouble = prize % 2 === 0 && Math.random() < 0.25;
-    cells[winningIndex] = {
-      label: useDouble ? "祥云×2" : "骏马",
-      amount: useDouble ? prize / 2 : prize,
-      kind: useDouble ? "bonus" : "match",
-    };
-  } else if (type.mode === "hybrid") {
-    const direct = Math.random() < 0.5;
-    cells[winningIndex] = {
-      label: direct ? "奖金" : String(winningNumbers[0]),
-      amount: prize,
-      kind: direct ? "bonus" : "match",
-    };
-  } else {
-    cells[winningIndex] = {
-      label: "奖金",
-      amount: prize,
-      kind: "bonus",
-    };
-  }
-
+  const index = randomInt(0, cells.length - 1);
+  const tenfold = type.id === "tenfold" && prize >= 100 && prize % 10 === 0 && Math.random() < 0.24;
+  cells[index] = {
+    label: tenfold ? "10" : String(pick(winningNumbers)),
+    amount: tenfold ? prize / 10 : prize,
+    kind: tenfold ? "multiplier" : "winning",
+  };
   return cells;
 }
 
+function makeSymbolCells(type: TicketType, prize: number) {
+  const decoys = ["福", "缘", "顺", "安", "乐", "和", "春", "满"];
+  const cells: TicketCell[] = Array.from({ length: type.opportunities }, () => ({
+    label: pick(decoys),
+    amount: pick(type.prizeTiers.slice(0, 5)).amount,
+    kind: "plain",
+  }));
+  if (prize <= 0) return cells;
+  const index = randomInt(0, cells.length - 1);
+  const double = prize % 2 === 0 && Math.random() < 0.2;
+  cells[index] = {
+    label: double ? "囍" : "喜",
+    amount: double ? prize / 2 : prize,
+    kind: double ? "multiplier" : "winning",
+  };
+  return cells;
+}
+
+function makeDirectCells(type: TicketType, prize: number) {
+  const cells: TicketCell[] = Array.from({ length: type.opportunities }, () => ({
+    label: "",
+    amount: 0,
+    kind: "blank",
+  }));
+  const luckyWin = prize > 0 && Math.random() < 0.18;
+  if (prize > 0 && !luckyWin) {
+    cells[randomInt(0, cells.length - 1)] = {
+      label: "",
+      amount: prize,
+      kind: "winning",
+    };
+  }
+  return [
+    ...cells,
+    {
+      label: "",
+      amount: luckyWin ? prize : 0,
+      kind: luckyWin ? "winning" : "blank",
+      section: "lucky",
+    },
+  ];
+}
+
+function makeComboCells(type: TicketType, prize: number, winningNumbers: number[]) {
+  const tripleSymbols = ["锦鲤", "福袋", "元宝", "莲花", "铜钱"];
+  const cells: TicketCell[] = [];
+  for (let i = 0; i < 3; i += 1) {
+    const symbols = shuffle(tripleSymbols).slice(0, 3);
+    cells.push({
+      label: symbols.join(" · "),
+      amount: pick(type.prizeTiers.slice(0, 5)).amount,
+      kind: "plain",
+      section: "triple",
+    });
+  }
+  for (let i = 0; i < 5; i += 1) {
+    cells.push({
+      label: pick(["锦鲤", "福字", "钱币", "如意", "灯笼"]),
+      amount: pick(type.prizeTiers.slice(0, 5)).amount,
+      kind: "plain",
+      section: "instant",
+    });
+  }
+  const nonWinning = Array.from({ length: 50 }, (_, index) => index + 1).filter(
+    (number) => !winningNumbers.includes(number),
+  );
+  for (let i = 0; i < 10; i += 1) {
+    cells.push({
+      label: String(pick(nonWinning)),
+      amount: pick(type.prizeTiers.slice(0, 5)).amount,
+      kind: "plain",
+      section: "numbers",
+    });
+  }
+  if (prize <= 0) return cells;
+  const method = pick(["triple", "instant", "numbers"] as const);
+  const candidates = cells
+    .map((cell, index) => ({ cell, index }))
+    .filter(({ cell }) => cell.section === method);
+  const target = pick(candidates).index;
+  if (method === "triple") {
+    const symbol = pick(tripleSymbols);
+    cells[target] = {
+      label: `${symbol} · ${symbol} · ${symbol}`,
+      amount: prize,
+      kind: "winning",
+      section: "triple",
+    };
+  } else if (method === "instant") {
+    cells[target] = {
+      label: "好运",
+      amount: prize,
+      kind: "winning",
+      section: "instant",
+    };
+  } else {
+    cells[target] = {
+      label: String(pick(winningNumbers)),
+      amount: prize,
+      kind: "winning",
+      section: "numbers",
+    };
+  }
+  return cells;
+}
+
+function makeCells(type: TicketType, prize: number, winningNumbers: number[]) {
+  if (type.mode === "direct") return makeDirectCells(type, prize);
+  if (type.mode === "symbol") return makeSymbolCells(type, prize);
+  if (type.mode === "combo") return makeComboCells(type, prize, winningNumbers);
+  return makeMatchCells(type, prize, winningNumbers);
+}
+
+function makeBookPrizePool(type: TicketType) {
+  const profiles = [
+    { value: 0.42, weight: 8 },
+    { value: 0.52, weight: 22 },
+    { value: 0.62, weight: 34 },
+    { value: 0.72, weight: 24 },
+    { value: 0.88, weight: 9 },
+    { value: 1.16, weight: 3 },
+  ];
+  let remaining =
+    Math.round(
+      (type.price * type.bookSize * weightedPick(profiles).value) / type.price,
+    ) * type.price;
+  const prizes: number[] = [];
+  while (remaining >= type.price && prizes.length < type.bookSize) {
+    const candidates = type.prizeTiers.filter(
+      (tier) => tier.amount <= remaining && tier.amount < type.topPrize,
+    );
+    if (candidates.length === 0) break;
+    const chosen = weightedPick(candidates).amount;
+    prizes.push(chosen);
+    remaining -= chosen;
+  }
+  while (prizes.length < type.bookSize) prizes.push(0);
+
+  const jackpotChance = type.topPrize >= 800_000 ? 0.000025 : 0.00005;
+  if (Math.random() < jackpotChance) {
+    const zeroIndex = prizes.findIndex((prize) => prize === 0);
+    prizes[zeroIndex >= 0 ? zeroIndex : prizes.length - 1] = type.topPrize;
+  }
+  return shuffle(prizes);
+}
+
 function createBook(type: TicketType): Book {
-  const serial = `${new Date().getFullYear()}${String(randomInt(1, 999999)).padStart(6, "0")}`;
+  const serial = `${String(randomInt(1, 999)).padStart(3, "0")}${String(
+    randomInt(1, 999999),
+  ).padStart(6, "0")}`;
   const bookId = `${type.id}-${serial}`;
-  const tickets = Array.from({ length: type.bookSize }, (_, index) => {
-    const prize = drawPrize(type);
-    const winningNumbers = makeWinningNumbers();
+  const prizePool = makeBookPrizePool(type);
+  const tickets = prizePool.map((prize, index) => {
+    const winningNumbers = makeWinningNumbers(type.mode === "combo" ? 2 : 1);
     return {
       id: `${bookId}-${index + 1}`,
       typeId: type.id,
@@ -254,53 +475,87 @@ function createBook(type: TicketType): Book {
       prize,
       winningNumbers,
       cells: makeCells(type, prize, winningNumbers),
+      validationCode: String(randomInt(1000, 9999)),
     };
   });
   return { id: bookId, typeId: type.id, tickets, cursor: 0 };
 }
 
-function ScratchLayer({ revealed, onReveal }: { revealed: boolean; onReveal: () => void }) {
+function ScratchLayer({
+  ticketId,
+  onProgress,
+  onComplete,
+}: {
+  ticketId: string;
+  onProgress: (progress: number) => void;
+  onComplete: () => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
   const movesRef = useRef(0);
+  const completedRef = useRef(false);
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+  const onProgressRef = useRef(onProgress);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+    onCompleteRef.current = onComplete;
+  }, [onComplete, onProgress]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || revealed) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-
-    const paint = () => {
-      const rect = parent.getBoundingClientRect();
-      const scale = window.devicePixelRatio || 1;
-      canvas.width = Math.max(1, Math.floor(rect.width * scale));
-      canvas.height = Math.max(1, Math.floor(rect.height * scale));
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      const context = canvas.getContext("2d");
-      if (!context) return;
-      context.setTransform(scale, 0, 0, scale, 0, 0);
-      const gradient = context.createLinearGradient(0, 0, rect.width, rect.height);
-      gradient.addColorStop(0, "#d7d7d2");
-      gradient.addColorStop(0.48, "#9b9d9e");
-      gradient.addColorStop(1, "#c8c7c2");
-      context.fillStyle = gradient;
-      context.fillRect(0, 0, rect.width, rect.height);
-      context.fillStyle = "rgba(255,255,255,.45)";
-      context.font = "700 13px system-ui";
-      context.textAlign = "center";
-      for (let y = 25; y < rect.height; y += 48) {
-        for (let x = 40; x < rect.width; x += 96) {
-          context.fillText("刮 开 区", x, y);
-        }
+    const parent = canvas?.parentElement;
+    if (!canvas || !parent) return;
+    const rect = parent.getBoundingClientRect();
+    const scale = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, Math.floor(rect.width * scale));
+    canvas.height = Math.max(1, Math.floor(rect.height * scale));
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, "#deded8");
+    gradient.addColorStop(0.3, "#a6a8a8");
+    gradient.addColorStop(0.58, "#d8d7d1");
+    gradient.addColorStop(1, "#989b9d");
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.setTransform(scale, 0, 0, scale, 0, 0);
+    context.fillStyle = "rgba(255,255,255,.4)";
+    context.font = "700 12px system-ui";
+    context.textAlign = "center";
+    for (let y = 22; y < rect.height; y += 42) {
+      for (let x = 42; x < rect.width; x += 88) {
+        context.fillText("刮 开 区", x, y);
       }
-    };
+    }
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    movesRef.current = 0;
+    completedRef.current = false;
+    lastPointRef.current = null;
+    onProgressRef.current(0);
+  }, [ticketId]);
 
-    paint();
-    const observer = new ResizeObserver(paint);
-    observer.observe(parent);
-    return () => observer.disconnect();
-  }, [revealed]);
+  const measure = useCallback(() => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d", { willReadFrequently: true });
+    if (!canvas || !context) return;
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    let erased = 0;
+    let sampled = 0;
+    for (let index = 3; index < pixels.length; index += 64) {
+      sampled += 1;
+      if (pixels[index] < 36) erased += 1;
+    }
+    const progress = Math.min(100, Math.round((erased / sampled) * 100));
+    onProgressRef.current(progress);
+    if (progress >= 72 && !completedRef.current) {
+      completedRef.current = true;
+      onCompleteRef.current();
+    }
+  }, []);
 
   const scratch = useCallback(
     (clientX: number, clientY: number) => {
@@ -310,33 +565,36 @@ function ScratchLayer({ revealed, onReveal }: { revealed: boolean; onReveal: () 
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
+      const point = {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY,
+      };
+      const previous = lastPointRef.current ?? point;
       context.save();
       context.globalCompositeOperation = "destination-out";
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.lineWidth = 17 * Math.max(scaleX, scaleY);
       context.beginPath();
-      context.arc(
-        (clientX - rect.left) * scaleX,
-        (clientY - rect.top) * scaleY,
-        26 * Math.max(scaleX, scaleY),
-        0,
-        Math.PI * 2,
-      );
-      context.fill();
+      context.moveTo(previous.x, previous.y);
+      context.lineTo(point.x, point.y);
+      context.stroke();
       context.restore();
+      lastPointRef.current = point;
       movesRef.current += 1;
-      if (movesRef.current > 38) onReveal();
+      if (movesRef.current % 7 === 0) measure();
     },
-    [onReveal],
+    [measure],
   );
-
-  if (revealed) return null;
 
   return (
     <canvas
       ref={canvasRef}
       className="scratch-layer"
-      aria-label="彩票覆盖膜，用鼠标或手指来回刮开"
+      aria-label="银色彩票覆盖膜，按住并来回刮开"
       onPointerDown={(event) => {
         drawingRef.current = true;
+        lastPointRef.current = null;
         event.currentTarget.setPointerCapture(event.pointerId);
         scratch(event.clientX, event.clientY);
       }}
@@ -345,28 +603,95 @@ function ScratchLayer({ revealed, onReveal }: { revealed: boolean; onReveal: () 
       }}
       onPointerUp={() => {
         drawingRef.current = false;
+        lastPointRef.current = null;
+        measure();
       }}
       onPointerCancel={() => {
         drawingRef.current = false;
+        lastPointRef.current = null;
+        measure();
       }}
     />
+  );
+}
+
+function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
+  if (type.mode === "combo") {
+    const groups = [
+      { id: "triple", title: "玩法一 · 三同图" },
+      { id: "instant", title: "玩法二 · 好运图符" },
+      { id: "numbers", title: "玩法三 · 对数字" },
+    ] as const;
+    return (
+      <div className="combo-games">
+        {groups.map((group) => (
+          <div className={`combo-game combo-${group.id}`} key={group.id}>
+            <b>{group.title}</b>
+            {group.id === "numbers" && (
+              <div className="mini-winning">
+                中奖号码 {ticket.winningNumbers.map((number) => <i key={number}>{number}</i>)}
+              </div>
+            )}
+            <div>
+              {ticket.cells
+                .filter((cell) => cell.section === group.id)
+                .map((cell, index) => (
+                  <div className={`ticket-cell cell-${cell.kind}`} key={`${group.id}-${index}`}>
+                    <span>{cell.label}</span>
+                    <strong>{formatMoney(cell.amount)}</strong>
+                  </div>
+                ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {type.mode === "match" && (
+        <div className="winning-row">
+          <span>中奖号码</span>
+          {ticket.winningNumbers.map((number) => <b key={number}>{number}</b>)}
+        </div>
+      )}
+      <div className="ticket-grid">
+        {ticket.cells.filter((cell) => cell.section !== "lucky").map((cell, index) => (
+          <div className={`ticket-cell cell-${cell.kind}`} key={`${ticket.id}-${index}`}>
+            {type.mode !== "direct" && <span>{cell.label}</span>}
+            {cell.amount > 0 && <strong>{formatMoney(cell.amount)}</strong>}
+          </div>
+        ))}
+      </div>
+      {type.mode === "direct" && (
+        <div className="lucky-play">
+          <b>幸运玩法</b>
+          <span>
+            {ticket.cells.find((cell) => cell.section === "lucky")?.amount
+              ? formatMoney(ticket.cells.find((cell) => cell.section === "lucky")!.amount)
+              : ""}
+          </span>
+        </div>
+      )}
+    </>
   );
 }
 
 function TicketFace({
   ticket,
   type,
-  revealed,
-  onReveal,
+  onProgress,
+  onComplete,
 }: {
   ticket: Ticket;
   type: TicketType;
-  revealed: boolean;
-  onReveal: () => void;
+  onProgress: (progress: number) => void;
+  onComplete: () => void;
 }) {
   return (
     <article
-      className={`ticket-face ticket-${type.mode}`}
+      className={`ticket-face ticket-${type.mode} face-${type.id}`}
       style={
         {
           "--ticket-color": type.color,
@@ -375,43 +700,29 @@ function TicketFace({
         } as React.CSSProperties
       }
     >
-      <div className="ticket-watermark">仅供模拟 · 无兑奖价值</div>
+      <div className="ticket-watermark">仿真练习票 · 无兑奖价值</div>
+      <div className="ticket-decoration" aria-hidden="true" />
       <header className="ticket-head">
         <div>
-          <span className="ticket-issuer">{type.issuer}</span>
+          <span className="ticket-issuer">{type.issuer} · 原型仿真</span>
           <h2>{type.name}</h2>
           <p>{type.subtitle}</p>
         </div>
         <strong>{formatMoney(type.price)}</strong>
       </header>
-
-      <div className="ticket-rule">{type.mechanic}</div>
-
-      {type.mode !== "amount" && (
-        <div className="winning-row">
-          <span>中奖号码</span>
-          {ticket.winningNumbers.map((number) => (
-            <b key={number}>{number}</b>
-          ))}
-        </div>
-      )}
-
-      <div className="scratch-zone">
-        <div className="ticket-grid">
-          {ticket.cells.map((cell, index) => (
-            <div className={`ticket-cell cell-${cell.kind}`} key={`${ticket.id}-${index}`}>
-              <span>{cell.label}</span>
-              <strong>{formatMoney(cell.amount)}</strong>
-            </div>
-          ))}
-        </div>
-        <ScratchLayer revealed={revealed} onReveal={onReveal} />
+      <div className="ticket-rule">
+        <b>玩法</b> {type.mechanic}
       </div>
-
+      <div className="scratch-zone">
+        <div className="ticket-content">
+          <TicketCells ticket={ticket} type={type} />
+        </div>
+        <ScratchLayer ticketId={ticket.id} onProgress={onProgress} onComplete={onComplete} />
+      </div>
       <footer className="ticket-foot">
-        <span>流水号 {ticket.bookId.split("-").at(-1)}</span>
+        <span>保安区刮开无效　▦ {ticket.validationCode}</span>
         <span>
-          {String(ticket.bookIndex).padStart(3, "0")}/{String(ticket.bookSize).padStart(3, "0")}
+          {ticket.bookId.split("-").at(-1)}-{String(ticket.bookIndex).padStart(3, "0")}
         </span>
       </footer>
     </article>
@@ -429,25 +740,23 @@ function MallScene({ onEnter }: { onEnter: () => void }) {
         <div className="kiosk-light">幸运彩票站</div>
         <div className="kiosk-window">
           <div className="ticket-wall">
-            <span>5元</span>
-            <span>10元</span>
-            <span>20元</span>
-            <span>50元</span>
+            <span>好运十倍</span>
+            <span>喜相逢</span>
+            <span>好运来</span>
+            <span>一路向海</span>
           </div>
-          <div className="owner owner-small">
-            <i />
-          </div>
+          <div className="owner owner-small"><i /></div>
         </div>
         <div className="kiosk-counter">理性购彩 · 未成年人不得购彩</div>
       </section>
       <section className="mall-intro">
         <span className="eyebrow">周六 · 17:42 · 商场负一层</span>
         <h1>逛着逛着，<br />又看见彩票店了。</h1>
-        <p>奶茶还没喝完。玻璃柜里新到了一批票，老板正把一整本拆开摆上架。</p>
+        <p>柜台玻璃上有细小的刮屑。架上的票并不齐，有几格已经空了。</p>
         <button className="primary-action" onClick={onEnter}>
           进去看看 <span>→</span>
         </button>
-        <small>本游戏不连接真实彩票、不使用真钱，仅模拟即开票体验。</small>
+        <small>非官方彩票产品，不使用真钱，仅模拟线下即开票体验。</small>
       </section>
       <div className="mall-floor" />
     </main>
@@ -465,14 +774,18 @@ export default function Home() {
   const [rolloverSpent, setRolloverSpent] = useState(0);
   const [redeemed, setRedeemed] = useState(0);
   const [paySource, setPaySource] = useState<PaySource>("cash");
-  const [ownerLine, setOwnerLine] = useState("欢迎，随便看看。新到的票都在架上。");
+  const [ownerLine, setOwnerLine] = useState(pick(DIALOGUE.greeting));
+  const [storeMood, setStoreMood] = useState(STORE_MOODS[0]);
   const [scratchQueue, setScratchQueue] = useState<Ticket[]>([]);
   const [scratchIndex, setScratchIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
+  const [scratchPercent, setScratchPercent] = useState(0);
+  const [scratchReady, setScratchReady] = useState(false);
+  const [validationQueue, setValidationQueue] = useState<Ticket[]>([]);
+  const [lastVerified, setLastVerified] = useState<Ticket[]>([]);
   const [logs, setLogs] = useState<SessionLog[]>([]);
-  const [inventoryRemaining, setInventoryRemaining] = useState<Record<string, number>>({});
-  const [countedTicketIds, setCountedTicketIds] = useState<Set<string>>(new Set());
-  const booksRef = useRef<Record<string, Book>>({});
+  const [stock, setStock] = useState<Record<string, PublicStock>>({});
+  const booksRef = useRef<Record<string, Book | undefined>>({});
+  const sealedBooksRef = useRef<Record<string, number>>({});
 
   const activeTicket = scratchQueue[scratchIndex];
   const activeType = activeTicket
@@ -486,52 +799,80 @@ export default function Home() {
     ].slice(0, 8));
   }, []);
 
-  const getOpenBook = useCallback((type: TicketType) => {
-    let book = booksRef.current[type.id];
-    if (!book || book.cursor >= book.tickets.length) {
-      book = createBook(type);
-      booksRef.current[type.id] = book;
-    }
-    return book;
+  const syncStock = useCallback(() => {
+    const snapshot = Object.fromEntries(
+      TICKET_TYPES.map((type) => {
+        const book = booksRef.current[type.id];
+        const remaining = book ? book.tickets.length - book.cursor : 0;
+        const sealed = sealedBooksRef.current[type.id] ?? 0;
+        let tone: StockTone = "open";
+        let label = pick(["架上正在卖", "柜台里还有", "今天有人在买"]);
+        if (remaining <= 0 && sealed <= 0) {
+          tone = "sold";
+          label = "这款暂时卖空";
+        } else if (remaining <= 2 && sealed <= 0) {
+          tone = "last";
+          label = "玻璃下只看见几张";
+        } else if (remaining <= Math.max(4, Math.floor(type.bookSize * 0.3))) {
+          tone = "thin";
+          label = "架上看着不多";
+        }
+        return [
+          type.id,
+          { tone, label, canSell: remaining + sealed * type.bookSize > 0, hasSealed: sealed > 0 },
+        ];
+      }),
+    );
+    setStock(snapshot);
   }, []);
 
-  const syncInventory = useCallback(() => {
-    setInventoryRemaining(
-      Object.fromEntries(
-        TICKET_TYPES.map((type) => {
-          const book = booksRef.current[type.id];
-          return [type.id, book ? book.tickets.length - book.cursor : type.bookSize];
-        }),
-      ),
-    );
+  const internalAvailable = useCallback((type: TicketType) => {
+    const book = booksRef.current[type.id];
+    const open = book ? book.tickets.length - book.cursor : 0;
+    return open + (sealedBooksRef.current[type.id] ?? 0) * type.bookSize;
   }, []);
 
   const takeFromOpenBooks = useCallback(
     (type: TicketType, count: number) => {
+      if (internalAvailable(type) < count) return null;
       const taken: Ticket[] = [];
       while (taken.length < count) {
-        const book = getOpenBook(type);
+        let book = booksRef.current[type.id];
+        if (!book || book.cursor >= book.tickets.length) {
+          const sealed = sealedBooksRef.current[type.id] ?? 0;
+          if (sealed <= 0) return null;
+          book = createBook(type);
+          booksRef.current[type.id] = book;
+          sealedBooksRef.current[type.id] = sealed - 1;
+        }
         const available = book.tickets.length - book.cursor;
-        const take = Math.min(count - taken.length, available);
-        taken.push(...book.tickets.slice(book.cursor, book.cursor + take));
-        book.cursor += take;
+        const amount = Math.min(count - taken.length, available);
+        taken.push(...book.tickets.slice(book.cursor, book.cursor + amount));
+        booksRef.current = {
+          ...booksRef.current,
+          [type.id]: { ...book, cursor: book.cursor + amount },
+        };
       }
-      syncInventory();
+      syncStock();
       return taken;
     },
-    [getOpenBook, syncInventory],
+    [internalAvailable, syncStock],
   );
 
   const beginScratching = useCallback((tickets: Ticket[]) => {
     setScratchQueue(tickets);
     setScratchIndex(0);
-    setRevealed(false);
+    setScratchPercent(0);
+    setScratchReady(false);
+    setValidationQueue([]);
+    setLastVerified([]);
+    setOwnerLine(pick(DIALOGUE.scratch));
     setPhase("scratch");
   }, []);
 
   const canPay = useCallback(
     (amount: number) => (paySource === "cash" ? wallet >= amount : prizeBalance >= amount),
-    [paySource, wallet, prizeBalance],
+    [paySource, prizeBalance, wallet],
   );
 
   const charge = useCallback(
@@ -553,118 +894,182 @@ export default function Home() {
       if (!canPay(total)) {
         setOwnerLine(
           paySource === "cash"
-            ? "手上的预算不够这组票。少拿几张，别临时加钱。"
-            : "这笔奖金换不了这么多。可以挑同价或更便宜的票。",
+            ? "你定的预算不够这组票了。少拿几张，别临时往里加钱。"
+            : "柜台上这笔奖金不够，换同价或更便宜的票吧。",
         );
         return;
       }
+      let tickets: Ticket[] | null = null;
+      if (sealedBook) {
+        const sealed = sealedBooksRef.current[type.id] ?? 0;
+        if (sealed > 0) {
+          tickets = createBook(type).tickets;
+          sealedBooksRef.current[type.id] = sealed - 1;
+          syncStock();
+        }
+      } else {
+        tickets = takeFromOpenBooks(type, count);
+      }
+      if (!tickets) {
+        setOwnerLine("这款实际剩下的不够你要的张数了。换少一点，或者看看别的票。");
+        syncStock();
+        return;
+      }
       charge(total);
-      const tickets = sealedBook ? createBook(type).tickets : takeFromOpenBooks(type, count);
       addLog(`${sealedBook ? "整本" : `${count}张`} · ${type.name}`, -total, "spend");
       setOwnerLine(
         sealedBook
-          ? `整本给你拆封，${tickets.length}张都在同一个流水号里，按顺序刮。`
+          ? pick(DIALOGUE.wholeBook)
           : count >= 5
-            ? `给你连着拿${count}张，都是柜台上这一本里的。`
-            : "票给你。硬币在旁边，刮完别忘了核对规则。",
+            ? pick(DIALOGUE.manyBuy)
+            : pick(DIALOGUE.smallBuy),
       );
       beginScratching(tickets);
     },
-    [addLog, beginScratching, canPay, charge, paySource, takeFromOpenBooks],
+    [addLog, beginScratching, canPay, charge, paySource, syncStock, takeFromOpenBooks],
   );
 
   const buyBlindBox = useCallback(() => {
-    const total = 100;
-    if (!canPay(total)) {
-      setOwnerLine("盲盒固定100元，预算不够就先别拿。");
+    if (!canPay(100)) {
+      setOwnerLine("惊喜包固定100元，预算不够就先别拿。");
       return;
     }
     const patterns = [
-      [["grand", 1], ["horse", 2], ["tenfold", 1]],
-      [["horse", 3], ["tenfold", 4]],
-      [["tenfold", 5], ["little-luck", 10]],
-      [["horse", 5]],
+      [["tenfold", 4], ["meeting", 3]],
+      [["fortune", 2], ["meeting", 2]],
+      [["coast", 4], ["meeting", 3]],
+      [["fortune", 1], ["meeting", 2], ["tenfold", 3]],
     ] as const;
-    const pattern = patterns[randomInt(0, patterns.length - 1)];
-    const tickets = pattern.flatMap(([typeId, count]) => {
-      const type = TICKET_TYPES.find((item) => item.id === typeId)!;
-      return takeFromOpenBooks(type, count);
-    });
-    charge(total);
-    addLog("100元惊喜包", -total, "spend");
-    setOwnerLine("这是店里自己配的100元盲盒，票都从架上正在卖的整本里拿，不是官方票种。");
-    beginScratching(shuffle(tickets));
-  }, [addLog, beginScratching, canPay, charge, takeFromOpenBooks]);
-
-  const revealTicket = useCallback(() => {
-    if (!activeTicket || countedTicketIds.has(activeTicket.id)) {
-      setRevealed(true);
+    const possible = patterns.filter((pattern) =>
+      pattern.every(([id, count]) => {
+        const type = TICKET_TYPES.find((item) => item.id === id)!;
+        return internalAvailable(type) >= count;
+      }),
+    );
+    if (possible.length === 0) {
+      setOwnerLine("今天架上的票凑不出100元惊喜包了。单张挑吧。");
       return;
     }
-    setCountedTicketIds((current) => {
-      const next = new Set(current);
-      next.add(activeTicket.id);
-      return next;
+    const tickets = pick(possible).flatMap(([id, count]) => {
+      const type = TICKET_TYPES.find((item) => item.id === id)!;
+      return takeFromOpenBooks(type, count) ?? [];
     });
-    setRevealed(true);
-    if (activeTicket.prize > 0) {
-      setPrizeBalance((value) => value + activeTicket.prize);
-      addLog(`${activeType?.name ?? "彩票"}中奖`, activeTicket.prize, "win");
-      if (activeTicket.prize === activeType?.price) {
-        setOwnerLine(`中了${activeTicket.prize}，回本一张。要不要直接换张同价的？`);
-      } else if (activeTicket.prize === 20) {
-        setOwnerLine("中了20块。收手也行，或者正好换一张20的，自己决定。");
-      } else if (activeTicket.prize >= 1000) {
-        setOwnerLine("这个金额店里先验票，大奖要按票背说明去指定地点兑。票先收好。");
-      } else {
-        setOwnerLine(`不错，中了${activeTicket.prize}块。先把剩下的刮完，再决定兑不兑。`);
-      }
-    } else {
-      addLog(`${activeType?.name ?? "彩票"}未中奖`, 0, "info");
-      setOwnerLine("这张没出。慢慢来，别因为没中就追着加预算。");
-    }
-  }, [activeTicket, activeType, addLog, countedTicketIds]);
+    charge(100);
+    addLog("店内100元惊喜包", -100, "spend");
+    setOwnerLine("票面正好100元，都是从今天正在卖的开本里拿的，不承诺中奖或保底。");
+    beginScratching(shuffle(tickets));
+  }, [addLog, beginScratching, canPay, charge, internalAvailable, takeFromOpenBooks]);
 
-  const nextTicket = useCallback(() => {
-    if (scratchIndex < scratchQueue.length - 1) {
-      setScratchIndex((value) => value + 1);
-      setRevealed(false);
-    } else {
-      setPhase("shop");
-      if (prizeBalance > 0) {
-        setOwnerLine(`这轮有${formatMoney(prizeBalance)}还没兑。可以收钱，也可以按面值换票。`);
+  const finishCurrentScratch = useCallback(
+    (validateNow: boolean) => {
+      if (!activeTicket || !scratchReady) return;
+      setValidationQueue((current) =>
+        current.some((ticket) => ticket.id === activeTicket.id)
+          ? current
+          : [...current, activeTicket],
+      );
+      setLastVerified([]);
+      const nextIndex = scratchIndex + 1;
+      setScratchIndex(nextIndex);
+      setScratchPercent(0);
+      setScratchReady(false);
+      if (validateNow || nextIndex >= scratchQueue.length) {
+        setOwnerLine("票递过来吧。我刮保安区，再用机器扫一下才算正式核验。");
+        setPhase("validation");
       } else {
-        setOwnerLine("这一轮刮完了。预算到了就收手，想看票也可以再看看。");
+        setOwnerLine(pick(DIALOGUE.scratch));
       }
+    },
+    [activeTicket, scratchIndex, scratchQueue.length, scratchReady],
+  );
+
+  const validateAtCounter = useCallback(() => {
+    if (validationQueue.length === 0) return;
+    const total = validationQueue.reduce((sum, ticket) => sum + ticket.prize, 0);
+    setLastVerified(validationQueue);
+    setValidationQueue([]);
+    if (total > 0) {
+      setPrizeBalance((value) => value + total);
+      validationQueue.forEach((ticket) => {
+        const type = TICKET_TYPES.find((item) => item.id === ticket.typeId)!;
+        addLog(`${type.name} · 机器验票`, ticket.prize, ticket.prize > 0 ? "win" : "info");
+      });
+      const exact = validationQueue.length === 1 && total === TICKET_TYPES.find(
+        (type) => type.id === validationQueue[0].typeId,
+      )?.price;
+      setOwnerLine(
+        total >= 10_000
+          ? pick(DIALOGUE.big)
+          : exact
+            ? pick(DIALOGUE.exact)
+            : `${pick(DIALOGUE.win)} ${Math.random() < 0.45 ? pick(DIALOGUE.upsell) : ""}`,
+      );
+    } else {
+      validationQueue.forEach((ticket) => {
+        const type = TICKET_TYPES.find((item) => item.id === ticket.typeId)!;
+        addLog(`${type.name} · 机器验票`, 0, "info");
+      });
+      setOwnerLine(pick(DIALOGUE.noPrize));
     }
-  }, [prizeBalance, scratchIndex, scratchQueue.length]);
+  }, [addLog, validationQueue]);
 
   const redeemAll = useCallback(() => {
     if (prizeBalance <= 0) return;
     setWallet((value) => value + prizeBalance);
     setRedeemed((value) => value + prizeBalance);
-    addLog("奖金已兑入钱包", prizeBalance, "win");
-    setOwnerLine(`给你兑了${formatMoney(prizeBalance)}。现金收好。`);
+    addLog("奖金兑成模拟现金", prizeBalance, "win");
+    setOwnerLine(`给你兑了${formatMoney(prizeBalance)}。现金收好，别把它又全放回去。`);
     setPrizeBalance(0);
     setPaySource("cash");
   }, [addLog, prizeBalance]);
+
+  const returnFromValidation = useCallback(() => {
+    if (scratchIndex < scratchQueue.length) {
+      setOwnerLine(pick(DIALOGUE.scratch));
+      setPhase("scratch");
+    } else {
+      setScratchQueue([]);
+      setScratchIndex(0);
+      setPhase("shop");
+    }
+  }, [scratchIndex, scratchQueue.length]);
 
   const startSession = useCallback(() => {
     if (!isAdult || budgetInput < 5) return;
     setInitialBudget(budgetInput);
     setWallet(budgetInput);
-    setOwnerLine(`成年就行。你今天打算玩${formatMoney(budgetInput)}？预算到了我提醒你。`);
-    setPhase("shop");
-    TICKET_TYPES.forEach((type) => {
-      booksRef.current[type.id] = createBook(type);
+    setStoreMood(pick(STORE_MOODS));
+    let availableCount = 0;
+    TICKET_TYPES.forEach((type, index) => {
+      const inStock = Math.random() > 0.18 || index === 0;
+      if (inStock) {
+        const book = createBook(type);
+        book.cursor = randomInt(1, Math.max(1, type.bookSize - 5));
+        booksRef.current[type.id] = book;
+        sealedBooksRef.current[type.id] = Math.random() > 0.45 ? randomInt(1, 2) : 0;
+        availableCount += 1;
+      } else {
+        booksRef.current[type.id] = undefined;
+        sealedBooksRef.current[type.id] = 0;
+      }
     });
-    syncInventory();
-  }, [budgetInput, isAdult, syncInventory]);
+    if (availableCount < 3) {
+      TICKET_TYPES.slice(0, 3).forEach((type) => {
+        if (!booksRef.current[type.id]) {
+          const book = createBook(type);
+          book.cursor = randomInt(2, Math.max(2, type.bookSize - 7));
+          booksRef.current[type.id] = book;
+        }
+      });
+    }
+    syncStock();
+    setOwnerLine(`${pick(DIALOGUE.greeting)} 你今天就按${formatMoney(budgetInput)}封顶。`);
+    setPhase("shop");
+  }, [budgetInput, isAdult, syncStock]);
 
   const resetGame = useCallback(() => {
     booksRef.current = {};
-    setInventoryRemaining({});
-    setCountedTicketIds(new Set());
+    sealedBooksRef.current = {};
     setPhase("mall");
     setBudgetInput(100);
     setIsAdult(false);
@@ -677,29 +1082,29 @@ export default function Home() {
     setPaySource("cash");
     setScratchQueue([]);
     setScratchIndex(0);
+    setScratchPercent(0);
+    setScratchReady(false);
+    setValidationQueue([]);
+    setLastVerified([]);
     setLogs([]);
-    setOwnerLine("欢迎，随便看看。新到的票都在架上。");
+    setStock({});
+    setOwnerLine(pick(DIALOGUE.greeting));
   }, []);
 
   const sessionNet = wallet + prizeBalance - initialBudget;
   const totalStake = cashSpent + rolloverSpent;
-  const pendingScratchCount = scratchQueue.filter(
-    (ticket) => !countedTicketIds.has(ticket.id),
-  ).length;
-
+  const validationTotal = lastVerified.reduce((sum, ticket) => sum + ticket.prize, 0);
   const stats = useMemo(
     () => [
       { label: "手上现金", value: formatMoney(wallet) },
-      { label: "未兑奖金", value: formatMoney(prizeBalance) },
+      { label: "已验未兑", value: formatMoney(prizeBalance) },
       { label: "累计票款", value: formatMoney(totalStake) },
       { label: "本次盈亏", value: `${sessionNet >= 0 ? "+" : "−"}${formatMoney(Math.abs(sessionNet))}` },
     ],
     [prizeBalance, sessionNet, totalStake, wallet],
   );
 
-  if (phase === "mall") {
-    return <MallScene onEnter={() => setPhase("budget")} />;
-  }
+  if (phase === "mall") return <MallScene onEnter={() => setPhase("budget")} />;
 
   if (phase === "budget") {
     return (
@@ -709,12 +1114,12 @@ export default function Home() {
           <div className="owner owner-large"><i /></div>
           <div className="speech speech-budget">
             <small>老板</small>
-            <p>先问一句：你成年了吗？今天准备拿多少钱玩？</p>
+            <p>{pick(["先问一句：成年了吗？今天准备拿多少玩？", "身份证不用掏，先确认你满18了。预算打算定多少？"])}</p>
           </div>
           <div className="budget-content">
-            <span className="eyebrow">进店第一步</span>
-            <h1>给今天定个预算</h1>
-            <p>只使用这笔模拟现金。预算花完后，游戏不会自动充值。</p>
+            <span className="eyebrow">进店先定上限</span>
+            <h1>今天最多花多少？</h1>
+            <p>只使用这笔模拟现金。花完不会自动充值，中奖也要先验票才能使用。</p>
             <div className="budget-presets">
               {[50, 100, 300, 600].map((value) => (
                 <button
@@ -723,7 +1128,7 @@ export default function Home() {
                   onClick={() => setBudgetInput(value)}
                 >
                   {formatMoney(value)}
-                  {value === 600 && <small>约一整本</small>}
+                  {value === 600 && <small>常见整本价位</small>}
                 </button>
               ))}
             </div>
@@ -747,7 +1152,7 @@ export default function Home() {
                 checked={isAdult}
                 onChange={(event) => setIsAdult(event.target.checked)}
               />
-              <span>我已年满18周岁，理解这只是概率模拟游戏</span>
+              <span>我已年满18周岁，并理解这里没有真钱和真实兑奖</span>
             </label>
             <button
               className="primary-action full"
@@ -767,12 +1172,12 @@ export default function Home() {
     return (
       <main className="scratch-screen">
         <header className="scratch-topbar">
-          <button className="back-link" onClick={() => setPhase("shop")}>← 暂停刮票</button>
+          <span className="back-link">票已付款 · 先刮完再离桌</span>
           <div className="scratch-progress">
             <span>第 {scratchIndex + 1} 张 / 共 {scratchQueue.length} 张</span>
-            <i style={{ width: `${((scratchIndex + (revealed ? 1 : 0)) / scratchQueue.length) * 100}%` }} />
+            <i style={{ width: `${scratchPercent}%` }} />
           </div>
-          <strong>未兑奖 {formatMoney(prizeBalance)}</strong>
+          <strong>待验票 {validationQueue.length} 张</strong>
         </header>
         <section className="scratch-stage">
           <div className="counter-dialogue compact">
@@ -785,28 +1190,88 @@ export default function Home() {
           <TicketFace
             ticket={activeTicket}
             type={activeType}
-            revealed={revealed}
-            onReveal={revealTicket}
+            onProgress={setScratchPercent}
+            onComplete={() => setScratchReady(true)}
           />
-          <div className="scratch-actions">
-            {!revealed ? (
+          <div className="scratch-actions scratch-actions-v2">
+            {!scratchReady ? (
               <>
-                <p>按住鼠标或手指，在银色覆盖膜上来回刮。</p>
-                <button className="secondary-action" onClick={revealTicket}>快速刮开</button>
+                <div className="scratch-meter" aria-label={`已刮开 ${scratchPercent}%`}>
+                  <i style={{ width: `${scratchPercent}%` }} />
+                </div>
+                <p>按住硬币来回移动。还要刮开 {Math.max(0, 72 - scratchPercent)}% 才能送去验票。</p>
               </>
             ) : (
               <>
-                <div className={`result-chip ${activeTicket.prize > 0 ? "winner" : ""}`}>
-                  {activeTicket.prize > 0
-                    ? `本张中奖 ${formatMoney(activeTicket.prize)}`
-                    : "本张未中奖"}
-                </div>
-                <button className="primary-action" onClick={nextTicket}>
-                  {scratchIndex < scratchQueue.length - 1 ? "下一张" : "回到柜台"} <span>→</span>
+                <div className="ready-chip">玩法区已基本露出 · 结果尚未核验</div>
+                {scratchIndex < scratchQueue.length - 1 && (
+                  <button className="secondary-action" onClick={() => finishCurrentScratch(false)}>
+                    放旁边，刮下一张
+                  </button>
+                )}
+                <button className="primary-action" onClick={() => finishCurrentScratch(true)}>
+                  拿给老板验票 <span>→</span>
                 </button>
               </>
             )}
           </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (phase === "validation") {
+    const queued = validationQueue.length;
+    const hasResult = lastVerified.length > 0;
+    return (
+      <main className="validation-screen">
+        <section className="validation-counter">
+          <div className="scanner">
+            <div className="scanner-light" />
+            <span>即开票验奖终端</span>
+            <b>{hasResult ? "核验完成" : "等待扫描"}</b>
+          </div>
+          <div className="validation-owner">
+            <div className="owner owner-large"><i /></div>
+            <div className="speech">
+              <small>老板</small>
+              <p>{ownerLine}</p>
+            </div>
+          </div>
+          {!hasResult ? (
+            <div className="validation-pending">
+              <span>{queued} 张票放在柜台上</span>
+              <h1>自己看出来的不算，<br />机器验过才结算。</h1>
+              <p>老板会刮开保安区并扫描验奖码。模拟器到这一步才把奖金计入“已验未兑”。</p>
+              <button className="primary-action" disabled={queued === 0} onClick={validateAtCounter}>
+                请老板逐张验票 <span>▦</span>
+              </button>
+            </div>
+          ) : (
+            <div className="validation-result">
+              <span className="eyebrow">机器核验结果</span>
+              <h1>{validationTotal > 0 ? `共中 ${formatMoney(validationTotal)}` : "这批没有中奖"}</h1>
+              <div className="verified-list">
+                {lastVerified.map((ticket) => {
+                  const type = TICKET_TYPES.find((item) => item.id === ticket.typeId)!;
+                  return (
+                    <div key={ticket.id}>
+                      <span>{type.name} · {String(ticket.bookIndex).padStart(3, "0")}</span>
+                      <strong>{ticket.prize > 0 ? formatMoney(ticket.prize) : "未中奖"}</strong>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="validation-actions">
+                {prizeBalance > 0 && (
+                  <button className="secondary-action" onClick={redeemAll}>兑成模拟现金</button>
+                )}
+                <button className="primary-action" onClick={returnFromValidation}>
+                  {scratchIndex < scratchQueue.length ? "回桌继续刮" : "回柜台选票"} <span>→</span>
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       </main>
     );
@@ -825,7 +1290,7 @@ export default function Home() {
             <h1>{sessionNet >= 0 ? "今天手气不错。" : "今天就到这里。"}</h1>
             <p>
               初始预算 {formatMoney(initialBudget)}，累计购买 {formatMoney(totalStake)}，
-              {prizeBalance > 0 ? ` 另有 ${formatMoney(prizeBalance)} 仍未兑奖。` : ` 已兑奖 ${formatMoney(redeemed)}。`}
+              {prizeBalance > 0 ? ` 已验未兑 ${formatMoney(prizeBalance)}。` : ` 已兑回 ${formatMoney(redeemed)}。`}
             </p>
           </div>
           <div className="receipt-grid">
@@ -841,12 +1306,10 @@ export default function Home() {
             <p>{sessionNet >= 0 ? "有赚就收挺好。下次逛到再来，不用专门追着玩。" : "彩票就是消遣，没中也别追。商场还没逛完呢。"}</p>
           </div>
           <div className="summary-actions">
-            {prizeBalance > 0 && (
-              <button className="secondary-action" onClick={redeemAll}>把未兑奖金收进钱包</button>
-            )}
+            {prizeBalance > 0 && <button className="secondary-action" onClick={redeemAll}>把奖金收进钱包</button>}
             <button className="primary-action" onClick={resetGame}>重新逛一次 <span>↻</span></button>
           </div>
-          <small className="receipt-disclaimer">非官方产品 · 不涉及真实资金 · 所有结果仅用于概率模拟</small>
+          <small className="receipt-disclaimer">非官方产品 · 不涉及真实资金 · 票面仅作玩法仿真</small>
         </section>
       </main>
     );
@@ -856,8 +1319,8 @@ export default function Home() {
     <main className="shop-screen">
       <header className="shop-header">
         <div>
-          <span className="eyebrow">幸运彩票站 · 商场店</span>
-          <h1>今天想刮哪一种？</h1>
+          <span className="eyebrow">{storeMood}</span>
+          <h1>柜台今天不是满货。</h1>
         </div>
         <div className="session-stats">
           {stats.map((stat) => (
@@ -870,7 +1333,6 @@ export default function Home() {
           ))}
         </div>
       </header>
-
       <section className="shop-body">
         <aside className="counter-panel">
           <div className="counter-dialogue">
@@ -880,14 +1342,10 @@ export default function Home() {
               <p>{ownerLine}</p>
             </div>
           </div>
-
           <div className="pay-panel">
             <span>这次用什么付款？</span>
             <div>
-              <button
-                className={paySource === "cash" ? "active" : ""}
-                onClick={() => setPaySource("cash")}
-              >
+              <button className={paySource === "cash" ? "active" : ""} onClick={() => setPaySource("cash")}>
                 现金 {formatMoney(wallet)}
               </button>
               <button
@@ -898,20 +1356,12 @@ export default function Home() {
                 奖金换票 {formatMoney(prizeBalance)}
               </button>
             </div>
-            {prizeBalance > 0 && (
-              <button className="redeem-link" onClick={redeemAll}>不换票，直接兑奖收钱</button>
-            )}
-            {pendingScratchCount > 0 && (
-              <button className="resume-link" onClick={() => setPhase("scratch")}>
-                继续刮剩下的 {pendingScratchCount} 张
-              </button>
-            )}
+            {prizeBalance > 0 && <button className="redeem-link" onClick={redeemAll}>不换票，直接兑奖收钱</button>}
           </div>
-
           <div className="session-log">
             <div className="section-label">刚才发生的事</div>
             {logs.length === 0 ? (
-              <p className="empty-log">还没买票。老板把硬币推到了柜台边。</p>
+              <p className="empty-log">还没买票。柜台边放着硬币和装刮屑的纸杯。</p>
             ) : (
               logs.slice(0, 5).map((log) => (
                 <div className={`log-row ${log.tone}`} key={log.id}>
@@ -921,26 +1371,28 @@ export default function Home() {
               ))
             )}
           </div>
-
           <button className="leave-button" onClick={() => setPhase("summary")}>收手，离开彩票店</button>
         </aside>
-
         <section className="ticket-shelf">
           <div className="shelf-head">
             <div>
-              <span className="section-label">柜台上的票</span>
-              <p>单张票会从当前整本按流水号顺序取出；买整本则拆一包新的。</p>
+              <span className="section-label">玻璃柜里能看到的票</span>
+              <p>只能看出“有、少、卖空”，看不到整本还剩几张。单张仍会从当前开本按顺序取出。</p>
             </div>
-            <span className="model-badge">整本预生成模型</span>
+            <span className="model-badge">店况随机</span>
           </div>
-
           <div className="ticket-products">
             {TICKET_TYPES.map((type) => {
-              const remaining = inventoryRemaining[type.id] ?? type.bookSize;
               const available = paySource === "cash" ? wallet : prizeBalance;
+              const itemStock = stock[type.id] ?? {
+                tone: "sold" as const,
+                label: "老板还没理货",
+                canSell: false,
+                hasSealed: false,
+              };
               return (
                 <article
-                  className="product-card"
+                  className={`product-card product-${type.id} stock-${itemStock.tone}`}
                   key={type.id}
                   style={
                     {
@@ -956,18 +1408,17 @@ export default function Home() {
                     <p>{type.subtitle}</p>
                     <strong>{formatMoney(type.price)}</strong>
                     <i>最高 {formatMoney(type.topPrize)}</i>
+                    <em>{type.opportunityLabel ?? `${type.opportunities}次机会`} · {type.prizeTierCount}个奖级</em>
                   </div>
                   <div className="product-detail">
+                    <div className={`stock-badge ${itemStock.tone}`}>{itemStock.label}</div>
                     <p>{type.mechanic}</p>
-                    <div className="book-line">
-                      <span>当前本剩 {remaining}/{type.bookSize} 张</span>
-                      <span>整本 {formatMoney(type.price * type.bookSize)}</span>
-                    </div>
+                    <div className="design-note">{type.design}</div>
                     <div className="quantity-actions">
                       {[1, 3, 5].map((count) => (
                         <button
                           key={count}
-                          disabled={available < type.price * count}
+                          disabled={!itemStock.canSell || available < type.price * count}
                           onClick={() => buyTickets(type, count)}
                         >
                           {count}张
@@ -976,45 +1427,39 @@ export default function Home() {
                       ))}
                       <button
                         className="book-button"
-                        disabled={available < type.price * type.bookSize}
+                        disabled={!itemStock.hasSealed || available < type.price * type.bookSize}
                         onClick={() => buyTickets(type, type.bookSize, true)}
                       >
-                        买整本
-                        <small>{type.bookSize}张</small>
+                        问整本
+                        <small>{formatMoney(type.price * type.bookSize)}</small>
                       </button>
                     </div>
                   </div>
                 </article>
               );
             })}
-
             <article className="product-card blind-box-card">
               <div className="blind-visual">
-                <span>店内自配</span>
+                <span>部分门店自配</span>
                 <h2>100元<br />惊喜包</h2>
                 <p>票种随机 · 总面值固定</p>
               </div>
               <div className="product-detail">
-                <p>从柜台上正在销售的5/10/20/50元整本里组合，总票面价值刚好100元。</p>
-                <div className="blind-note">不是官方彩票品种，不承诺中奖或保底。</div>
-                <button
-                  className="primary-action full"
-                  disabled={!canPay(100)}
-                  onClick={buyBlindBox}
-                >
-                  拿一个盲盒 <span>{formatMoney(100)}</span>
+                <p>从今天实际在卖的开本里组合，票面总值正好100元；没有官方“盲盒票种”或中奖保证。</p>
+                <div className="blind-note">如果现有零票凑不齐100元，老板会直接告诉你今天没法配。</div>
+                <button className="primary-action full" disabled={!canPay(100)} onClick={buyBlindBox}>
+                  问一个惊喜包 <span>{formatMoney(100)}</span>
                 </button>
               </div>
             </article>
           </div>
         </section>
       </section>
-
       <footer className="shop-footer">
         <span>18+</span>
-        <p>仅模拟线下即开票体验。概率以公开返奖结构建模，不预测真实彩票结果，也不存在“选号技巧”。</p>
-        <button onClick={() => setOwnerLine("正规的即开票没有中奖编号规律。每张结果在印制时就已经确定了。")}>
-          问老板：编号有规律吗？
+        <p>票种名称、公开玩法与票面结构来自真实产品资料；本模拟不复制验奖系统，也不预测真实彩票。</p>
+        <button onClick={() => setOwnerLine("流水号只是生产和物流管理信息。正规的即开票没有可利用的中奖编号规律。")}>
+          问老板：编号能看出奖吗？
         </button>
       </footer>
     </main>

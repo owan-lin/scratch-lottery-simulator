@@ -2918,3 +2918,198 @@ body {
 .ticket-cell:nth-child(2n) {
   background: #bfc2bf;
 }
+
+/* UI branch final override · 高浓度特效实验版 */
+:root {
+  --paper: #090619;
+  --paper-deep: #04020c;
+  --ink: #fff8e8;
+  --muted: #c6bddd;
+  --green: #4fffd2;
+  --red: #ff3f7f;
+  --gold: #ffd84f;
+  --line: rgba(132, 233, 255, 0.24);
+  --shadow: 0 0 90px rgba(112, 61, 255, 0.34);
+}
+
+html,
+body {
+  background:
+    radial-gradient(circle at 20% 0, rgba(115, 68, 255, 0.38), transparent 30rem),
+    radial-gradient(circle at 90% 25%, rgba(255, 59, 137, 0.25), transparent 32rem),
+    linear-gradient(145deg, #0b0620, #04020e);
+  color: #fff8e8;
+}
+
+body::before,
+body::after {
+  border-radius: 50%;
+  content: "";
+  filter: blur(1px);
+  height: 5px;
+  left: 8%;
+  pointer-events: none;
+  position: fixed;
+  top: 18%;
+  width: 5px;
+  z-index: 20;
+}
+
+body::before {
+  animation: sparkle-drift 8s linear infinite;
+  box-shadow:
+    12vw 14vh #5fffe0,
+    26vw 61vh #ffd84f,
+    44vw 22vh #ff5da2,
+    63vw 72vh #65d8ff,
+    81vw 35vh #fff;
+}
+
+body::after {
+  animation: sparkle-drift 11s linear -4s infinite reverse;
+  box-shadow:
+    16vw 66vh #ff5da2,
+    38vw 37vh #fff,
+    58vw 15vh #ffd84f,
+    76vw 82vh #5fffe0,
+    90vw 55vh #7c7cff;
+}
+
+.shop-header,
+.scratch-topbar {
+  background: rgba(8, 4, 25, 0.76);
+  border-bottom: 1px solid rgba(105, 245, 255, 0.35);
+  box-shadow:
+    0 0 34px rgba(85, 225, 255, 0.16),
+    0 12px 48px rgba(87, 49, 255, 0.22);
+  color: #fff;
+}
+
+.counter-panel,
+.ticket-shelf,
+.budget-card,
+.wandering-card {
+  background:
+    linear-gradient(145deg, rgba(29, 16, 63, 0.93), rgba(8, 5, 25, 0.94));
+  border-color: rgba(104, 239, 255, 0.27);
+  box-shadow:
+    0 0 0 1px rgba(255, 93, 175, 0.12),
+    0 28px 80px rgba(0, 0, 0, 0.48),
+    0 0 70px rgba(106, 65, 255, 0.18);
+  color: #fff8e8;
+}
+
+.product-card {
+  background: #11092b;
+  border-color: rgba(118, 237, 255, 0.34);
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.45),
+    0 0 34px color-mix(in srgb, var(--ticket-color) 42%, transparent);
+  overflow: hidden;
+}
+
+.product-card::after {
+  animation: hologram-sweep 3.6s ease-in-out infinite;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(94, 255, 228, 0.03) 36%,
+    rgba(255, 255, 255, 0.32) 49%,
+    rgba(255, 83, 173, 0.08) 58%,
+    transparent 72%
+  );
+  content: "";
+  inset: -60% -90%;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-35%) rotate(8deg);
+}
+
+.product-detail {
+  background: rgba(12, 8, 34, 0.96);
+  color: #fff8e8;
+}
+
+.product-detail p,
+.design-note,
+.distribution-note span,
+.distribution-note small,
+.shelf-head p {
+  color: #c9bfde;
+}
+
+.primary-action {
+  background: linear-gradient(135deg, #47ffd3, #6485ff 48%, #ff4f9d);
+  box-shadow:
+    0 0 28px rgba(80, 246, 224, 0.36),
+    0 0 58px rgba(255, 79, 157, 0.22);
+  color: #080518;
+}
+
+.secondary-action,
+.catalog-controls input,
+.catalog-controls button,
+.pay-panel button,
+.book-request-panel select {
+  background: rgba(27, 16, 61, 0.88);
+  border-color: rgba(113, 239, 255, 0.3);
+  color: #fff8e8;
+}
+
+.ticket-face {
+  animation: ticket-aura 3.4s ease-in-out infinite;
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.56),
+    0 0 46px color-mix(in srgb, var(--ticket-accent) 46%, transparent);
+}
+
+.lottery-kiosk {
+  border-color: #5fffe0;
+  box-shadow:
+    0 0 0 5px rgba(255, 77, 159, 0.75),
+    0 0 62px rgba(87, 255, 224, 0.48),
+    0 30px 100px rgba(0, 0, 0, 0.7);
+}
+
+.kiosk-light {
+  animation: sign-pulse 2.8s ease-in-out infinite;
+  background: linear-gradient(105deg, #ff356f, #8e45ff, #2be7da);
+}
+
+.mall-scene {
+  background:
+    radial-gradient(circle at 72% 38%, rgba(94, 255, 224, 0.2), transparent 23rem),
+    radial-gradient(circle at 88% 68%, rgba(255, 65, 151, 0.2), transparent 20rem),
+    linear-gradient(#0f0829 0 68%, #04020c 68%);
+}
+
+@keyframes hologram-sweep {
+  0%, 32% { transform: translateX(-42%) rotate(8deg); }
+  72%, 100% { transform: translateX(42%) rotate(8deg); }
+}
+
+@keyframes ticket-aura {
+  0%, 100% { filter: saturate(1.05) brightness(1); }
+  50% { filter: saturate(1.22) brightness(1.06); }
+}
+
+@keyframes sign-pulse {
+  0%, 100% { filter: brightness(1); text-shadow: 0 0 12px rgba(255,255,255,.35); }
+  50% { filter: brightness(1.22); text-shadow: 0 0 28px rgba(255,255,255,.8); }
+}
+
+@keyframes sparkle-drift {
+  0% { transform: translate3d(0, 0, 0) scale(0.7); opacity: 0.25; }
+  45% { opacity: 0.9; }
+  100% { transform: translate3d(4vw, -12vh, 0) scale(1.25); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after,
+  .product-card::after,
+  .ticket-face,
+  .kiosk-light {
+    animation: none;
+  }
+}

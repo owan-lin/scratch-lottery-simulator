@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: "60款票种、真实 SVG 印刷图符与统一票面验奖引擎，无需登录即可试玩。",
     images: [
       {
-        url: `${siteUrl}/og-v070.png`,
+        url: `${siteUrl}/og-v070.jpg`,
         width: 1200,
         height: 630,
         alt: "幸运彩票站：三种高级游戏界面中的60款仿真即开票",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "幸运彩票站｜慢慢刮，验过才算",
     description: "60款票种、真实 SVG 印刷图符与统一票面验奖引擎，无需登录即可试玩。",
-    images: [`${siteUrl}/og-v070.png`],
+    images: [`${siteUrl}/og-v070.jpg`],
   },
 };
 

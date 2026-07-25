@@ -2918,3 +2918,119 @@ body {
 .ticket-cell:nth-child(2n) {
   background: #bfc2bf;
 }
+
+/* UI branch final override · 夜市彩票亭 */
+:root {
+  --paper: #101a1c;
+  --paper-deep: #091113;
+  --ink: #f7ecd1;
+  --muted: #b7aa91;
+  --green: #e4a73d;
+  --red: #ed5a45;
+  --gold: #f0b64a;
+  --line: rgba(243, 219, 167, 0.19);
+  --shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+}
+
+html,
+body {
+  background:
+    radial-gradient(circle at 72% 5%, rgba(235, 161, 49, 0.18), transparent 26rem),
+    linear-gradient(145deg, #172729, #091214);
+  color: #f7ecd1;
+}
+
+.mall-scene {
+  background:
+    radial-gradient(circle at 75% 35%, rgba(245, 188, 70, 0.22), transparent 25rem),
+    linear-gradient(#142327 0 68%, #071012 68%);
+}
+
+.mall-ceiling {
+  opacity: 0.25;
+}
+
+.lottery-kiosk {
+  background: #1c2928;
+  border-color: #d99b30;
+  box-shadow:
+    0 0 42px rgba(240, 174, 57, 0.24),
+    0 34px 90px rgba(0, 0, 0, 0.62);
+}
+
+.kiosk-light {
+  background: #d84b34;
+  box-shadow: 0 0 32px rgba(241, 85, 52, 0.54);
+  color: #fff2c2;
+}
+
+.kiosk-window {
+  background:
+    linear-gradient(rgba(255, 218, 139, 0.17), transparent),
+    #213a3b;
+}
+
+.shop-header,
+.scratch-topbar {
+  background: rgba(9, 19, 21, 0.9);
+  border-bottom: 1px solid rgba(242, 184, 72, 0.32);
+  color: #fff0cc;
+}
+
+.counter-panel,
+.ticket-shelf,
+.budget-card,
+.wandering-card {
+  background:
+    linear-gradient(145deg, rgba(28, 45, 47, 0.96), rgba(13, 27, 29, 0.96));
+  border-color: rgba(238, 183, 78, 0.23);
+  color: #f7ecd1;
+}
+
+.product-card {
+  background: #142426;
+  border-color: rgba(241, 188, 86, 0.25);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.34);
+}
+
+.product-detail {
+  background: #182a2c;
+  color: #f7ecd1;
+}
+
+.product-detail p,
+.design-note,
+.distribution-note span,
+.distribution-note small,
+.shelf-head p {
+  color: #bfb29a;
+}
+
+.catalog-controls input,
+.catalog-controls button,
+.secondary-action,
+.pay-panel button,
+.book-request-panel select {
+  background: #213538;
+  border-color: rgba(241, 188, 86, 0.25);
+  color: #f7ecd1;
+}
+
+.primary-action {
+  background: linear-gradient(135deg, #e7aa3e, #c86c27);
+  color: #17120a;
+  box-shadow: 0 10px 30px rgba(227, 151, 46, 0.24);
+}
+
+.section-label,
+.eyebrow {
+  color: #edb34e;
+}
+
+.speech,
+.story-memory,
+.pay-panel,
+.book-request-panel {
+  background: rgba(255, 241, 207, 0.07);
+  border-color: rgba(242, 190, 88, 0.19);
+}

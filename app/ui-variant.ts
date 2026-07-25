@@ -1,4 +1,3 @@
 export type UiVariant = "diorama" | "arcade" | "ledger";
 
-export const UI_VARIANT: UiVariant = "diorama";
-
+export const UI_VARIANT: UiVariant = "arcade";

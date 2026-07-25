@@ -30,6 +30,41 @@ function weightedPick(random, items) {
   return items[items.length - 1];
 }
 
+function makeOfficialGroupBook(type, random) {
+  const group = type.officialPrizeGroup;
+  const remainingWins = group.prizeCounts.map(({ amount, count }) => ({
+    amount,
+    count,
+  }));
+  let remainingTickets = group.groupSize;
+  let remainingLosing = Math.max(
+    0,
+    group.groupSize - remainingWins.reduce((sum, item) => sum + item.count, 0),
+  );
+  const prizes = [];
+
+  for (let index = 0; index < type.bookSize; index += 1) {
+    let roll = Math.floor(random() * remainingTickets);
+    let selected = 0;
+    if (roll < remainingLosing) {
+      remainingLosing -= 1;
+    } else {
+      roll -= remainingLosing;
+      for (const item of remainingWins) {
+        if (roll < item.count) {
+          selected = item.amount;
+          item.count -= 1;
+          break;
+        }
+        roll -= item.count;
+      }
+    }
+    prizes.push(selected);
+    remainingTickets -= 1;
+  }
+  return prizes;
+}
+
 /**
  * Builds one pre-printed book before it reaches the shop.
  *
@@ -39,6 +74,7 @@ function weightedPick(random, items) {
  * injection. The jackpot draw remains independent and extremely rare.
  */
 export function makeBookPrizePool(type, random = Math.random) {
+  if (type.officialPrizeGroup) return makeOfficialGroupBook(type, random);
   const model = type.distribution ?? {
     targetReturn: 0.65,
     smallWinsPerBook: [Math.ceil(type.bookSize * 0.27), Math.ceil(type.bookSize * 0.4)],
@@ -109,3 +145,4 @@ export function makeSeededRandom(seed) {
 }
 
 export const BOOK_PROFILES = ORDINARY_BOOK_PROFILES;
+export const PRIZE_MODEL_INTERNALS = { makeOfficialGroupBook };

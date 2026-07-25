@@ -4,6 +4,7 @@ export type PlayMode =
   | "symbol"
   | "combo"
   | "triple"
+  | "pairs"
   | "compare"
   | "add"
   | "grid"
@@ -18,6 +19,7 @@ export type PlayFamily =
   | "数字相加"
   | "九宫格"
   | "走步"
+  | "两同图"
   | "组合玩法";
 
 export type PrizeTier = {
@@ -31,6 +33,21 @@ export type TicketDistribution = {
   hundredEveryBooks: number;
   jackpotEveryBooks: number;
   note: string;
+};
+
+export type SymbolRule = {
+  label: string;
+  multiplier: number;
+  award?: "amount" | "all";
+};
+
+export type OfficialPrizeGroup = {
+  groupSize: number;
+  prizeCounts: Array<{
+    amount: number;
+    count: number;
+  }>;
+  sourceUrl: string;
 };
 
 export type TicketType = {
@@ -58,6 +75,15 @@ export type TicketType = {
   evidence: "官方详规" | "官方介绍" | "官方目录";
   sourceUrl: string;
   publishedWinRate?: number;
+  winningNumberCount?: number;
+  winningSymbols?: SymbolRule[];
+  matchMultipliers?: Array<{ label: string; multiplier: number }>;
+  pairRule?: {
+    matchLabel: string;
+    bonusLabel: string;
+    bonusMultiplier: number;
+  };
+  officialPrizeGroup?: OfficialPrizeGroup;
 };
 
 type TicketSeed = Omit<
@@ -71,6 +97,95 @@ type TicketSeed = Omit<
 };
 
 const OFFICIAL_CATALOG = "https://www.qlfc.com.cn/guaguale/";
+const HORSE_2026_RULES =
+  "https://www.gdlottery.cn/html/gonggao/20251225/93409.html";
+
+const HORSE_2026_PRIZE_GROUPS = {
+  "wu-horse": {
+    groupSize: 1_800_000,
+    prizeCounts: [
+      { amount: 100_000, count: 1 },
+      { amount: 10_000, count: 5 },
+      { amount: 1_000, count: 50 },
+      { amount: 500, count: 100 },
+      { amount: 200, count: 500 },
+      { amount: 100, count: 1_500 },
+      { amount: 50, count: 6_500 },
+      { amount: 30, count: 18_750 },
+      { amount: 20, count: 37_500 },
+      { amount: 10, count: 82_500 },
+      { amount: 5, count: 577_500 },
+    ],
+    sourceUrl: HORSE_2026_RULES,
+  },
+  "horse-new-year": {
+    groupSize: 1_800_000,
+    prizeCounts: [
+      { amount: 300_000, count: 1 },
+      { amount: 10_000, count: 10 },
+      { amount: 5_000, count: 20 },
+      { amount: 1_000, count: 100 },
+      { amount: 500, count: 400 },
+      { amount: 200, count: 2_000 },
+      { amount: 100, count: 7_500 },
+      { amount: 50, count: 25_500 },
+      { amount: 30, count: 37_500 },
+      { amount: 20, count: 105_000 },
+      { amount: 10, count: 525_000 },
+    ],
+    sourceUrl: HORSE_2026_RULES,
+  },
+  "horse-success-2026": {
+    groupSize: 9_000_000,
+    prizeCounts: [
+      { amount: 1_000_000, count: 1 },
+      { amount: 100_000, count: 10 },
+      { amount: 10_000, count: 200 },
+      { amount: 1_000, count: 1_500 },
+      { amount: 500, count: 32_500 },
+      { amount: 200, count: 15_000 },
+      { amount: 100, count: 75_000 },
+      { amount: 50, count: 375_000 },
+      { amount: 30, count: 750_000 },
+      { amount: 20, count: 2_175_000 },
+    ],
+    sourceUrl: HORSE_2026_RULES,
+  },
+  "head-start-2026": {
+    groupSize: 9_000_000,
+    prizeCounts: [
+      { amount: 1_000_000, count: 1 },
+      { amount: 500_000, count: 2 },
+      { amount: 100_000, count: 10 },
+      { amount: 10_000, count: 100 },
+      { amount: 1_000, count: 3_000 },
+      { amount: 800, count: 15_000 },
+      { amount: 500, count: 38_000 },
+      { amount: 200, count: 12_500 },
+      { amount: 100, count: 225_000 },
+      { amount: 50, count: 900_000 },
+      { amount: 30, count: 2_250_000 },
+    ],
+    sourceUrl: HORSE_2026_RULES,
+  },
+  "new-year-luck-2026": {
+    groupSize: 7_200_000,
+    prizeCounts: [
+      { amount: 1_000_000, count: 1 },
+      { amount: 500_000, count: 4 },
+      { amount: 100_000, count: 20 },
+      { amount: 10_000, count: 160 },
+      { amount: 1_000, count: 7_400 },
+      { amount: 800, count: 36_000 },
+      { amount: 500, count: 13_400 },
+      { amount: 200, count: 90_000 },
+      { amount: 150, count: 90_000 },
+      { amount: 100, count: 630_000 },
+      { amount: 50, count: 1_800_000 },
+    ],
+    sourceUrl: HORSE_2026_RULES,
+  },
+} satisfies Record<string, OfficialPrizeGroup>;
 
 function bookSizeFor(price: number) {
   if (price === 10) return 50;
@@ -129,7 +244,12 @@ function ticket(seed: TicketSeed): TicketType {
     bookSize,
     variantCount: seed.variantCount ?? 1,
     artSymbols: seed.artSymbols ?? ["福", "喜", "运", "彩"],
-    prizeTiers: makePrizeTiers(seed.price, seed.topPrize, seed.prizeTierCount),
+    prizeTiers: seed.officialPrizeGroup
+      ? seed.officialPrizeGroup.prizeCounts.map(({ amount, count }) => ({
+          amount,
+          weight: count,
+        }))
+      : makePrizeTiers(seed.price, seed.topPrize, seed.prizeTierCount),
     distribution,
   };
 }
@@ -162,7 +282,7 @@ export const TICKET_TYPES: TicketType[] = [
     subtitle: "10元 · 阿喜与囍",
     issuer: "中国福利彩票",
     price: 10,
-    opportunities: 15,
+    opportunities: 10,
     prizeTierCount: 11,
     topPrize: 300_000,
     mode: "symbol",
@@ -563,7 +683,7 @@ export const TICKET_TYPES: TicketType[] = [
     issuer: "中国福利彩票",
     price: 20,
     opportunities: 30,
-    prizeTierCount: 10,
+    prizeTierCount: 11,
     topPrize: 1_000_000,
     mode: "compare",
     playFamily: "比大小",
@@ -583,8 +703,8 @@ export const TICKET_TYPES: TicketType[] = [
     subtitle: "10元 · 三同7",
     issuer: "中国福利彩票",
     price: 10,
-    opportunities: 12,
-    prizeTierCount: 10,
+    opportunities: 16,
+    prizeTierCount: 9,
     topPrize: 250_000,
     mode: "triple",
     playFamily: "三同图",
@@ -795,7 +915,7 @@ export const TICKET_TYPES: TicketType[] = [
     issuer: "中国福利彩票",
     price: 10,
     opportunities: 12,
-    prizeTierCount: 10,
+    prizeTierCount: 11,
     topPrize: 250_000,
     mode: "symbol",
     playFamily: "找图符",
@@ -805,6 +925,12 @@ export const TICKET_TYPES: TicketType[] = [
     ink: "#fff5d8",
     accent: "#f04f36",
     artSymbols: ["66", "88", "顺", "发"],
+    winningSymbols: [
+      { label: "66", multiplier: 1 },
+      { label: "88", multiplier: 1 },
+      { label: "顺", multiplier: 6 },
+      { label: "发", multiplier: 8 },
+    ],
     variantCount: 2,
     distribution: {
       hundredEveryBooks: 5,
@@ -973,13 +1099,260 @@ export const TICKET_TYPES: TicketType[] = [
     sourceUrl: "https://www.news.cn/caipiao/20220609/c09bd80d1d454aff86d10497e23bf780/c.html",
   }),
   ticket({
+    id: "lucky-123",
+    name: "幸运123",
+    subtitle: "20元 · 图符/金额/号码三玩法",
+    issuer: "中国福利彩票",
+    price: 20,
+    opportunities: 19,
+    opportunityLabel: "19次 · 三块独立玩法区",
+    prizeTierCount: 10,
+    topPrize: 1_000_000,
+    mode: "combo",
+    playFamily: "组合玩法",
+    mechanic: "玩法一同局三同图；玩法二刮出奖金金额即中；玩法三“我的号码”与“中奖号码”相同即中，三区奖金兼中兼得。",
+    design: "红蓝两款立体数字1/2/3主视觉，礼盒、心形与彩带围绕三块刮开区。",
+    color: "#204a8b",
+    ink: "#fff2d4",
+    accent: "#ec4f43",
+    artSymbols: ["礼盒", "爱心", "星星", "金币"],
+    variantCount: 2,
+    evidence: "官方详规",
+    sourceUrl: "https://www.yzfcw.com/history/newsContent?newsId=18983",
+  }),
+  ticket({
+    id: "opera-show",
+    name: "非常有戏",
+    subtitle: "10元 · 生旦净丑国潮票",
+    issuer: "中国福利彩票",
+    price: 10,
+    opportunities: 8,
+    prizeTierCount: 8,
+    topPrize: 100_000,
+    mode: "symbol",
+    playFamily: "找图符",
+    mechanic: "刮出书法“戏”奖符，即中该图符右侧对应奖金；折扇、二胡、锣鼓和脸谱均为非中奖图符。",
+    design: "四张生旦净丑手绘戏曲套票，红蓝撞色、脸谱、折扇与舞台幕布。",
+    color: "#8d263a",
+    ink: "#f8ecd2",
+    accent: "#2d7c8f",
+    artSymbols: ["折扇", "二胡", "锣鼓", "脸谱"],
+    winningSymbols: [{ label: "戏", multiplier: 1 }],
+    variantCount: 4,
+    publishedWinRate: 0.3408,
+    evidence: "官方详规",
+    sourceUrl: "https://www.yzfcw.com/game/ssqNewsContent?newsId=18948",
+  }),
+  ticket({
+    id: "mushroom-hunt",
+    name: "采蘑菇",
+    subtitle: "5元 · 蘑菇即中与篮子通吃",
+    issuer: "中国体育彩票",
+    price: 5,
+    bookSize: 100,
+    opportunities: 8,
+    prizeTierCount: 11,
+    topPrize: 100_000,
+    mode: "symbol",
+    playFamily: "找图符",
+    mechanic: "刮出蘑菇图符得下方奖金；刮出篮子图符，获得刮开区8个金额之和，奖金兼中兼得。",
+    design: "红色蘑菇、草叶与藤蔓构成童话森林，八个奖位排成采集路径。",
+    color: "#b72c29",
+    ink: "#fff0d0",
+    accent: "#5f8f43",
+    artSymbols: ["蘑菇", "花朵", "竹叶", "篮子"],
+    winningSymbols: [
+      { label: "蘑菇", multiplier: 1 },
+      { label: "篮子", multiplier: 1, award: "all" },
+    ],
+    variantCount: 1,
+    evidence: "官方详规",
+    sourceUrl: "https://www.sport.gov.cn/n20001280/n20745751/n20767297/c21223190/content.html",
+  }),
+  ticket({
+    id: "best-wishes",
+    name: "万事如意",
+    subtitle: "20元 · 灯笼与如意翻倍",
+    issuer: "中国福利彩票",
+    price: 20,
+    opportunities: 20,
+    prizeTierCount: 10,
+    topPrize: 1_000_000,
+    mode: "symbol",
+    playFamily: "找图符",
+    mechanic: "刮出灯笼图符得下方奖金；刮出如意图符得下方奖金两倍，奖金兼中兼得。",
+    design: "走财运、降祥瑞、添如意、旺桃花、涨福气、升职级六款传统纹样票面。",
+    color: "#b1272d",
+    ink: "#fff1d0",
+    accent: "#d9ad45",
+    artSymbols: ["灯笼", "如意", "莲花", "祥云"],
+    winningSymbols: [
+      { label: "灯笼", multiplier: 1 },
+      { label: "如意", multiplier: 2 },
+    ],
+    variantCount: 6,
+    evidence: "官方介绍",
+    sourceUrl: "https://www.gdfc.org.cn/datas/content/content_282152.html?subjectID=13",
+  }),
+  ticket({
+    id: "sprout",
+    name: "新芽",
+    subtitle: "10元 · 八边形可折叠票",
+    issuer: "中国福利彩票",
+    price: 10,
+    opportunities: 12,
+    opportunityLabel: "数字/金额/三同图组合区",
+    prizeTierCount: 8,
+    topPrize: 100_000,
+    mode: "combo",
+    playFamily: "组合玩法",
+    mechanic: "数字匹配、奖金金额即中与三同图三种玩法分区呈现，中奖奖金兼中兼得。",
+    design: "黄绿与红色两款八边形异形票，叶片、树苗与折叠压线可组成小盒。",
+    color: "#5b8738",
+    ink: "#f6f1cc",
+    accent: "#e3b43e",
+    artSymbols: ["新芽", "竹叶", "花朵", "阳光"],
+    variantCount: 2,
+    evidence: "官方介绍",
+    sourceUrl: "https://www.zhcw.com/c/2019-06-06/574190.shtml",
+  }),
+  ticket({
+    id: "wu-horse",
+    name: "午马",
+    subtitle: "5元 · 九联剪纸贺岁票",
+    issuer: "中国体育彩票",
+    price: 5,
+    bookSize: 100,
+    opportunities: 8,
+    opportunityLabel: "金额即中 · 九联收藏票",
+    prizeTierCount: 11,
+    topPrize: 100_000,
+    mode: "direct",
+    playFamily: "金额即中",
+    mechanic: "玩法区出现奖金金额即中，中奖奖金兼中兼得。",
+    design: "九张可拼成骏马剪纸窗花的红金联票，每张带不同马年祝福语。",
+    color: "#b51f26",
+    ink: "#fff1c9",
+    accent: "#e5b441",
+    artSymbols: ["骏马", "窗花", "祥云", "灯笼"],
+    variantCount: 9,
+    officialPrizeGroup: HORSE_2026_PRIZE_GROUPS["wu-horse"],
+    publishedWinRate: 724_906 / 1_800_000,
+    evidence: "官方详规",
+    sourceUrl: HORSE_2026_RULES,
+  }),
+  ticket({
+    id: "horse-new-year",
+    name: "骏马贺岁",
+    subtitle: "10元 · 两同骏马与灯笼三倍",
+    issuer: "中国体育彩票",
+    price: 10,
+    opportunities: 12,
+    prizeTierCount: 11,
+    topPrize: 300_000,
+    mode: "pairs",
+    playFamily: "两同图",
+    mechanic: "任意一局出现两个相同骏马图符即中右侧奖金；出现灯笼图符即中该局奖金三倍，奖金兼中兼得。",
+    design: "黑、白、紫、赤四色名驹，马身饰牡丹、如意、蝙蝠与莲花吉祥纹。",
+    color: "#762e38",
+    ink: "#fff0cc",
+    accent: "#e1b24c",
+    artSymbols: ["骏马", "灯笼", "牡丹", "莲花"],
+    pairRule: {
+      matchLabel: "骏马",
+      bonusLabel: "灯笼",
+      bonusMultiplier: 3,
+    },
+    variantCount: 4,
+    officialPrizeGroup: HORSE_2026_PRIZE_GROUPS["horse-new-year"],
+    publishedWinRate: 703_031 / 1_800_000,
+    evidence: "官方详规",
+    sourceUrl: HORSE_2026_RULES,
+  }),
+  ticket({
+    id: "horse-success-2026",
+    name: "马到成功",
+    subtitle: "20元 · 骏马/祥云/成功通吃",
+    issuer: "中国体育彩票",
+    price: 20,
+    opportunities: 25,
+    prizeTierCount: 10,
+    topPrize: 1_000_000,
+    mode: "symbol",
+    playFamily: "找图符",
+    mechanic: "刮出骏马图符得下方奖金；祥云图符得两倍；成功图符获得刮开区25个金额之和。",
+    design: "红橘蓝三款现代装饰版画，骏马头戴唐代仪仗风格当卢。",
+    color: "#bd4930",
+    ink: "#fff1d3",
+    accent: "#284f84",
+    artSymbols: ["骏马", "祥云", "成功", "奖牌"],
+    winningSymbols: [
+      { label: "骏马", multiplier: 1 },
+      { label: "祥云", multiplier: 2 },
+      { label: "成功", multiplier: 1, award: "all" },
+    ],
+    variantCount: 3,
+    officialPrizeGroup: HORSE_2026_PRIZE_GROUPS["horse-success-2026"],
+    publishedWinRate: 3_424_211 / 9_000_000,
+    evidence: "官方详规",
+    sourceUrl: HORSE_2026_RULES,
+  }),
+  ticket({
+    id: "head-start-2026",
+    name: "抢头彩2026",
+    subtitle: "30元 · 金额即中与头彩两倍",
+    issuer: "中国体育彩票",
+    price: 30,
+    opportunities: 24,
+    opportunityLabel: "金额区 + 号码区",
+    prizeTierCount: 11,
+    topPrize: 1_000_000,
+    mode: "combo",
+    playFamily: "组合玩法",
+    mechanic: "玩法一刮出奖金金额即中；玩法二号码匹配即中，出现头彩图符得下方奖金两倍。",
+    design: "两款复古国潮骏马插画，鲜明撞色、头彩旗帜与奔腾动势。",
+    color: "#224f89",
+    ink: "#fff0d0",
+    accent: "#ef5d3f",
+    artSymbols: ["骏马", "旗帜", "祥云", "奖杯"],
+    variantCount: 2,
+    officialPrizeGroup: HORSE_2026_PRIZE_GROUPS["head-start-2026"],
+    publishedWinRate: 3_443_613 / 9_000_000,
+    evidence: "官方详规",
+    sourceUrl: HORSE_2026_RULES,
+  }),
+  ticket({
+    id: "new-year-luck-2026",
+    name: "新春大吉2026",
+    subtitle: "50元 · 背面大刮区收藏票",
+    issuer: "中国体育彩票",
+    price: 50,
+    opportunities: 40,
+    opportunityLabel: "金额区 + 号码/倍数区",
+    prizeTierCount: 11,
+    topPrize: 1_000_000,
+    mode: "combo",
+    playFamily: "组合玩法",
+    mechanic: "玩法一刮出奖金金额即中；玩法二号码匹配即中，骏马图符得两倍，大吉图符得五倍。",
+    design: "横版中国红，八匹奔马、金色祥云与火红灯笼；刮开区设置在票背。",
+    color: "#a91f25",
+    ink: "#fff0c7",
+    accent: "#d9aa3f",
+    artSymbols: ["骏马", "祥云", "灯笼", "大吉"],
+    variantCount: 1,
+    officialPrizeGroup: HORSE_2026_PRIZE_GROUPS["new-year-luck-2026"],
+    publishedWinRate: 2_666_985 / 7_200_000,
+    evidence: "官方详规",
+    sourceUrl: HORSE_2026_RULES,
+  }),
+  ticket({
     id: "super-nine",
     name: "超级9",
     subtitle: "50元 · 九宫组合玩法",
     issuer: "中国福利彩票",
     price: 50,
-    opportunities: 35,
-    prizeTierCount: 9,
+    opportunities: 40,
+    prizeTierCount: 11,
     topPrize: 1_000_000,
     mode: "combo",
     playFamily: "组合玩法",

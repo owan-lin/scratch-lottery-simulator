@@ -14,15 +14,18 @@
 
 ## 当前版本
 
-`v0.6.0`：50 款票库、真实黑色图符、灰底黑字奖面与低密度高奖模型。
+`v0.7.0`：60 款票库、逐格可复算的验奖引擎、真实 SVG 图符与三套高级游戏界面。
 
 - 商场进店、成年确认、预算封顶和离店结算
 - 需要持续拖动的逐步刮开，不再点击或碰到就整张揭开
 - 玩法区露出后只进入“待验票”，奖金在老板扫码后才入账
 - 模拟玩法区、保安区、物流/流水信息的真实票面结构
-- 参考官方资料建立 50 个配置，覆盖 10、20、30、50 元
-- 新增“66顺88发”“连中三元”“唐风宋韵”“国泰民安”“有福”等真实玩法
-- 刮开后统一使用实体票常见的灰底黑字奖面，20 枚黑色印刷图符不再用文字代替
+- 参考官方资料建立 60 个配置，覆盖 5、10、20、30、50 元
+- 还原“66顺88发”“连中三元”“幸运123”“非常有戏”“采蘑菇”“马到成功”等各自独立玩法
+- 刮开后统一使用实体票常见的灰底黑字奖面；元宝、祥云、骏马等使用真正的 SVG 图符，而非文字占位
+- 所有玩法统一从玩家看见的号码、图符和金额重新计算奖金；隐藏计划金额不参与兑奖
+- 对 60 款票逐奖级、空票和整本做固定随机种子回归，拦截“票面与机器奖金不一致”
+- 2026 马年五款票使用官方完整奖组数量无放回抽样，不把官方奖组误说成单本保底
 - 普通整本与百元以上奖档分开建模，显著降低 100–1000 元奖档密度
 - 当日门店随机上架 14 款，可按票名、玩法与面值筛选
 - 金额直出玩法的未中奖位置为空白，奖金只在随机位置出现
@@ -34,6 +37,14 @@
 - 多组随机老板对白，以及兑奖后“收钱/同价换票”的选择
 - 可选逛街剧情模式，把商场事件带入老板对白；不联网、0 Token
 - 大模型已完成成本评估，公开版暂不接入，避免泄露密钥或产生无上限费用
+
+## 三套 UI 分支
+
+- [`ui/diorama-kiosk`](https://github.com/owan-lin/scratch-lottery-simulator/tree/ui/diorama-kiosk)：暖色商场实体柜台 / 第一人称微缩场景 · [点击即玩](https://lucky-ticket-red-retro-owanlin.owanlin.chatgpt.site)
+- [`ui/arcade-cabinet`](https://github.com/owan-lin/scratch-lottery-simulator/tree/ui/arcade-cabinet)：全屏赛博街机 / 横向票卡轮盘 · [点击即玩](https://lucky-ticket-max-effects-owanlin.owanlin.chatgpt.site)
+- [`ui/night-ledger`](https://github.com/owan-lin/scratch-lottery-simulator/tree/ui/night-ledger)：木桌票册 / 收据账本式夜间摊位 · [点击即玩](https://lucky-ticket-night-kiosk-owanlin.owanlin.chatgpt.site)
+
+三套分支使用同一票库和同一验奖测试，不是简单换色。各自的公开直玩链接会随版本发布写回本节。
 
 ## 本地运行
 
@@ -68,7 +79,7 @@ npm test
 - [CHANGELOG.md](CHANGELOG.md)：版本变化
 - [docs/ROADMAP.md](docs/ROADMAP.md)：短期迭代计划
 - [docs/research.md](docs/research.md)：票种调查与概率建模说明
-- [docs/ticket-catalog.md](docs/ticket-catalog.md)：50 款票种目录与证据等级
+- [docs/ticket-catalog.md](docs/ticket-catalog.md)：60 款票种目录与证据等级
 - [docs/PRODUCT_REVIEW.md](docs/PRODUCT_REVIEW.md)：Section Infi 产品审视与迭代决策
 - [docs/LLM_COST.md](docs/LLM_COST.md)：剧情模式与大模型 Token 预算
 - GitHub Actions 会在推送和 Pull Request 时执行构建与测试

@@ -2320,6 +2320,1187 @@ button:disabled {
   background: #bfc2bf;
 }
 
+/* v0.7: every revealed play area uses real black pictograms on printed grey stock */
+.ticket-content,
+.combo-games,
+.winning-row,
+.lucky-play {
+  color: #101210;
+}
+
+.ticket-glyph,
+.ticket-art-motifs .ticket-glyph,
+.product-symbols .ticket-glyph {
+  display: inline-grid;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: none !important;
+  background-image: none !important;
+  color: #101210 !important;
+  opacity: 1;
+}
+
+.ticket-glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.ticket-art-motifs .ticket-glyph,
+.product-symbols .ticket-glyph {
+  width: 34px;
+  height: 34px;
+  color: var(--ticket-ink) !important;
+}
+
+.ticket-glyph-run {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #101210;
+}
+
+.ticket-glyph-run > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ticket-glyph-run i {
+  color: #343734;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.ticket-rule-mark {
+  display: inline-grid;
+  min-width: 25px;
+  min-height: 25px;
+  padding: 2px 4px;
+  place-items: center;
+  border: 2px solid #111;
+  border-radius: 50%;
+  color: #0d0f0d;
+  font-family: "STKaiti", "KaiTi", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.ticket-pairs .ticket-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ticket-pairs .ticket-cell {
+  min-height: 58px;
+}
+
+.face-three-yuan .ticket-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.face-three-yuan .ticket-cell {
+  min-height: 42px;
+}
+
+@media (max-width: 720px) {
+  .ticket-pairs .ticket-grid,
+  .face-three-yuan .ticket-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   UI A · DIORAMA KIOSK — warm first-person mall counter
+   ────────────────────────────────────────────────────────────────────────── */
+.ui-diorama {
+  --world-cream: #f5e9d1;
+  --world-wood: #4a291d;
+  --world-green: #244f43;
+  --world-red: #a92b26;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+.ui-diorama.mall-scene {
+  background:
+    linear-gradient(180deg, rgba(255, 248, 225, 0.2), transparent 28%),
+    repeating-linear-gradient(90deg, #ddd5c6 0 90px, #d6cdbd 90px 92px);
+}
+
+.ui-diorama .lottery-kiosk {
+  border: 12px solid #3b2118;
+  border-bottom-width: 26px;
+  border-radius: 18px 18px 4px 4px;
+  box-shadow:
+    0 26px 80px rgba(45, 25, 15, 0.35),
+    inset 0 0 0 4px #bc8d56;
+  transform: perspective(1000px) rotateX(0.8deg);
+}
+
+.ui-diorama .kiosk-window {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.26), transparent 23% 70%, rgba(255,255,255,.14)),
+    #eee2c9;
+}
+
+.ui-diorama.shop-screen {
+  background:
+    linear-gradient(180deg, #ded4bd 0 112px, transparent 112px),
+    repeating-linear-gradient(90deg, rgba(62, 39, 26, 0.035) 0 1px, transparent 1px 28px),
+    #ebe1cd;
+}
+
+.ui-diorama .shop-header {
+  border-bottom: 8px solid #6f472c;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.12), transparent),
+    #23473d;
+  color: #fff8e8;
+  box-shadow: 0 12px 30px rgba(40, 25, 14, 0.2);
+}
+
+.ui-diorama .shop-header .eyebrow,
+.ui-diorama .shop-header h1,
+.ui-diorama .session-stats span,
+.ui-diorama .session-stats strong {
+  color: inherit;
+}
+
+.ui-diorama .shop-body {
+  position: relative;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 18px;
+  max-width: 1640px;
+  margin: 0 auto;
+  padding: 22px;
+}
+
+.ui-diorama .counter-panel {
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  overflow: hidden;
+  border: 8px solid #57331f;
+  border-radius: 8px 8px 18px 18px;
+  background:
+    linear-gradient(100deg, transparent 0 35%, rgba(255,255,255,.25) 36% 37%, transparent 38%),
+    #f4e5c9;
+  box-shadow:
+    inset 0 0 0 2px #b58a5b,
+    0 18px 38px rgba(54, 32, 20, 0.22);
+}
+
+.ui-diorama .counter-dialogue {
+  border-bottom: 3px solid rgba(72, 43, 26, 0.25);
+  background:
+    linear-gradient(180deg, #d6c29f, #efe0c6 62%),
+    #efe0c6;
+}
+
+.ui-diorama .ticket-shelf {
+  overflow: hidden;
+  border: 6px solid #624028;
+  border-radius: 16px;
+  background:
+    linear-gradient(110deg, rgba(255,255,255,.46), transparent 18% 75%, rgba(255,255,255,.18)),
+    rgba(246, 240, 222, 0.86);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.8),
+    0 18px 44px rgba(53, 34, 20, 0.18);
+}
+
+.ui-diorama .shelf-head {
+  border-bottom: 1px solid rgba(66, 45, 30, 0.2);
+  background: rgba(255,255,255,.38);
+}
+
+.ui-diorama .ticket-products {
+  grid-template-columns: repeat(auto-fit, minmax(430px, 1fr));
+  gap: 16px;
+}
+
+.ui-diorama .product-card {
+  overflow: visible;
+  border: 1px solid rgba(69, 43, 26, 0.25);
+  border-radius: 7px 7px 15px 15px;
+  background: #fffaf0;
+  box-shadow:
+    0 10px 24px rgba(58, 36, 23, 0.13),
+    inset 0 -7px 0 #b48c64;
+  transform-origin: 50% 100%;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.ui-diorama .product-card:nth-child(3n + 1) {
+  transform: rotate(-0.35deg);
+}
+
+.ui-diorama .product-card:nth-child(3n) {
+  transform: rotate(0.35deg);
+}
+
+.ui-diorama .product-card:hover {
+  z-index: 2;
+  box-shadow: 0 18px 36px rgba(58, 36, 23, 0.2);
+  transform: translateY(-4px) rotate(0deg);
+}
+
+.ui-diorama .product-ticket {
+  min-height: 218px;
+  border-radius: 6px 6px 0 0;
+}
+
+.ui-diorama.scratch-screen {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(246,231,190,.16), transparent 45%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 16px),
+    #3c261d;
+}
+
+.ui-diorama .scratch-topbar {
+  background: #23473d;
+  color: #fff7df;
+}
+
+.ui-diorama .scratch-stage {
+  grid-template-columns: 250px minmax(500px, 1fr) 310px;
+  gap: 22px;
+  max-width: 1560px;
+  padding: 26px;
+  border: 14px solid #5a3625;
+  border-radius: 22px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    #28584b;
+  background-size: 28px 28px;
+  box-shadow: inset 0 0 45px rgba(0,0,0,.32), 0 26px 60px rgba(0,0,0,.34);
+}
+
+.ui-diorama .scratch-actions,
+.ui-diorama .counter-dialogue.compact {
+  align-self: center;
+  border: 1px solid rgba(85, 56, 33, 0.25);
+  border-radius: 14px;
+  background: #f4e7cf;
+  box-shadow: 0 12px 26px rgba(0,0,0,.18);
+}
+
+.ui-diorama.validation-screen {
+  background:
+    linear-gradient(180deg, rgba(36,79,67,.86), rgba(36,79,67,.86)) top / 100% 34% no-repeat,
+    #e8ddc7;
+}
+
+.ui-diorama .validation-counter {
+  border: 10px solid #5b3825;
+  background: #f5ead4;
+  box-shadow: 0 30px 80px rgba(45, 28, 18, 0.28);
+}
+
+.ui-diorama.budget-screen,
+.ui-diorama.wandering-screen,
+.ui-diorama.summary-screen {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255,252,232,.95), transparent 35%),
+    #d8cfbd;
+}
+
+.ui-diorama .budget-card,
+.ui-diorama .wandering-card,
+.ui-diorama .receipt {
+  border: 8px solid #5f3c27;
+  background: #fff7e7;
+  box-shadow: 0 30px 80px rgba(49, 30, 18, 0.24);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   UI B · ARCADE CABINET — full-screen carousel and scanline HUD
+   ────────────────────────────────────────────────────────────────────────── */
+.ui-arcade {
+  --arcade-cyan: #57f2f2;
+  --arcade-orange: #ff7a3d;
+  --arcade-panel: #111721;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  color: #edf9fa;
+}
+
+.ui-arcade::after {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0 3px,
+    rgba(255,255,255,.018) 3px 4px
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.ui-arcade.mall-scene {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(45,240,228,.19), transparent 28%),
+    linear-gradient(145deg, #04070d, #111828 60%, #070a11);
+}
+
+.ui-arcade .mall-sign {
+  border: 1px solid rgba(87,242,242,.46);
+  background: #071018;
+  color: var(--arcade-cyan);
+  font-family: ui-monospace, monospace;
+  letter-spacing: .18em;
+  box-shadow: 0 0 28px rgba(87,242,242,.18);
+}
+
+.ui-arcade .lottery-kiosk {
+  overflow: hidden;
+  border: 2px solid var(--arcade-cyan);
+  border-radius: 24px;
+  background: #0a0f18;
+  box-shadow:
+    0 0 0 8px #151c28,
+    0 0 80px rgba(87,242,242,.23);
+}
+
+.ui-arcade .kiosk-light {
+  background: linear-gradient(90deg, #08111b, #152b37, #08111b);
+  color: var(--arcade-cyan);
+  font-style: italic;
+  letter-spacing: .12em;
+  text-shadow: 0 0 20px currentColor;
+}
+
+.ui-arcade .kiosk-window {
+  background:
+    linear-gradient(135deg, rgba(87,242,242,.11), transparent 42%),
+    #111824;
+}
+
+.ui-arcade.shop-screen {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 48% 35%, rgba(38,98,127,.28), transparent 35%),
+    linear-gradient(145deg, #05080e, #111826 58%, #070a10);
+}
+
+.ui-arcade .shop-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: 94px;
+  border-bottom: 1px solid rgba(87,242,242,.38);
+  background: rgba(7, 11, 18, .94);
+  color: #efffff;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 36px rgba(0,0,0,.34);
+}
+
+.ui-arcade .shop-header .eyebrow,
+.ui-arcade .story-status {
+  color: var(--arcade-cyan);
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  letter-spacing: .12em;
+}
+
+.ui-arcade .shop-header h1 {
+  color: #fff;
+  font-size: clamp(26px, 3vw, 46px);
+  font-style: italic;
+  letter-spacing: -.04em;
+  text-transform: uppercase;
+}
+
+.ui-arcade .session-stats {
+  border: 1px solid rgba(87,242,242,.24);
+  border-radius: 8px;
+  background: #0c121c;
+}
+
+.ui-arcade .session-stats div {
+  border-color: rgba(87,242,242,.16);
+}
+
+.ui-arcade .session-stats span {
+  color: #7f9aa2;
+  font-family: ui-monospace, monospace;
+}
+
+.ui-arcade .session-stats strong {
+  color: #f5ffff;
+  font-family: ui-monospace, monospace;
+}
+
+.ui-arcade .shop-body {
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 0;
+  min-height: calc(100dvh - 94px);
+  padding: 0;
+}
+
+.ui-arcade .ticket-shelf {
+  order: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.ui-arcade .counter-panel {
+  order: 2;
+  position: sticky;
+  top: 94px;
+  align-self: start;
+  height: calc(100dvh - 94px);
+  overflow-y: auto;
+  border: 0;
+  border-left: 1px solid rgba(87,242,242,.28);
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(87,242,242,.045), transparent 24%),
+    #0b1019;
+  color: #dce9ea;
+}
+
+.ui-arcade .counter-dialogue,
+.ui-arcade .story-memory,
+.ui-arcade .pay-panel,
+.ui-arcade .book-request-panel,
+.ui-arcade .session-log {
+  border-color: rgba(87,242,242,.15);
+  background: transparent;
+  color: #dce9ea;
+}
+
+.ui-arcade .speech,
+.ui-arcade .story-memory {
+  border: 1px solid rgba(87,242,242,.24);
+  background: rgba(16,28,37,.9);
+  color: #efffff;
+}
+
+.ui-arcade .speech small,
+.ui-arcade .section-label {
+  color: var(--arcade-cyan);
+  font-family: ui-monospace, monospace;
+  text-transform: uppercase;
+}
+
+.ui-arcade .shelf-head {
+  padding: 26px 30px 18px;
+  border: 0;
+  color: #eaf7f7;
+}
+
+.ui-arcade .shelf-head p {
+  color: #8da2a8;
+}
+
+.ui-arcade .model-badge {
+  border: 1px solid rgba(87,242,242,.4);
+  background: rgba(4,13,18,.8);
+  color: var(--arcade-cyan);
+}
+
+.ui-arcade .catalog-controls {
+  margin: 0 30px 18px;
+  border: 1px solid rgba(87,242,242,.2);
+  border-radius: 9px;
+  background: #0b121d;
+}
+
+.ui-arcade .catalog-controls span,
+.ui-arcade .catalog-controls input {
+  color: #d9e7e9;
+}
+
+.ui-arcade .catalog-controls input {
+  border-color: rgba(87,242,242,.25);
+  background: #050a11;
+}
+
+.ui-arcade .catalog-controls button {
+  border-color: rgba(87,242,242,.25);
+  background: #111b27;
+  color: #a5b9bd;
+  border-radius: 5px;
+}
+
+.ui-arcade .catalog-controls button.active {
+  background: var(--arcade-cyan);
+  color: #041013;
+  box-shadow: 0 0 20px rgba(87,242,242,.22);
+}
+
+.ui-arcade .ticket-products {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  padding: 12px 30px 40px;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: var(--arcade-cyan) #151c27;
+}
+
+.ui-arcade .product-card {
+  display: grid;
+  flex: 0 0 min(780px, 78vw);
+  grid-template-columns: minmax(260px, .82fr) minmax(310px, 1.18fr);
+  min-height: 580px;
+  overflow: hidden;
+  border: 1px solid rgba(87,242,242,.36);
+  border-radius: 16px;
+  background: #111722;
+  color: #dce8ea;
+  scroll-snap-align: center;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.42),
+    inset 0 0 0 1px rgba(255,255,255,.035);
+  transform: perspective(1100px) rotateY(-1.2deg);
+}
+
+.ui-arcade .product-card:hover {
+  border-color: var(--arcade-cyan);
+  box-shadow: 0 28px 70px rgba(0,0,0,.52), 0 0 28px rgba(87,242,242,.13);
+  transform: perspective(1100px) rotateY(0);
+}
+
+.ui-arcade .product-ticket {
+  min-height: 100%;
+  border-radius: 0;
+}
+
+.ui-arcade .product-detail {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    linear-gradient(180deg, rgba(87,242,242,.025), transparent),
+    #111722;
+  color: #b8c9cc;
+}
+
+.ui-arcade .distribution-note {
+  border-left-color: var(--arcade-cyan);
+  background: #091018;
+  color: #9eb0b4;
+}
+
+.ui-arcade .distribution-note b,
+.ui-arcade .distribution-note small {
+  color: inherit;
+}
+
+.ui-arcade .quantity-actions button,
+.ui-arcade .loose-ticket-picks button,
+.ui-arcade .book-request-panel button,
+.ui-arcade .pay-panel button {
+  border-color: rgba(87,242,242,.25);
+  border-radius: 6px;
+  background: #162130;
+  color: #e9ffff;
+}
+
+.ui-arcade .quantity-actions button:hover:not(:disabled),
+.ui-arcade .loose-ticket-picks button:hover:not(:disabled) {
+  border-color: var(--arcade-cyan);
+  color: var(--arcade-cyan);
+}
+
+.ui-arcade .shop-footer {
+  border-top: 1px solid rgba(87,242,242,.23);
+  background: #050910;
+  color: #879da3;
+}
+
+.ui-arcade.scratch-screen {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(45,116,145,.32), transparent 40%),
+    #060a11;
+}
+
+.ui-arcade .scratch-topbar {
+  border-bottom: 1px solid rgba(87,242,242,.42);
+  background: #080d15;
+  color: #eaffff;
+  font-family: ui-monospace, monospace;
+}
+
+.ui-arcade .scratch-progress i {
+  background: var(--arcade-cyan);
+  box-shadow: 0 0 14px rgba(87,242,242,.6);
+}
+
+.ui-arcade .scratch-stage {
+  grid-template-columns: 240px minmax(520px, 1fr) 300px;
+  gap: 20px;
+  max-width: 1680px;
+  padding: 24px;
+}
+
+.ui-arcade .ticket-face {
+  filter: drop-shadow(0 28px 35px rgba(0,0,0,.48));
+}
+
+.ui-arcade .scratch-actions,
+.ui-arcade .counter-dialogue.compact {
+  align-self: center;
+  border: 1px solid rgba(87,242,242,.27);
+  border-radius: 10px;
+  background: rgba(10,16,25,.94);
+  color: #dce9ea;
+  box-shadow: 0 0 32px rgba(87,242,242,.08);
+}
+
+.ui-arcade .scratch-toolbox button {
+  border-color: rgba(87,242,242,.23);
+  background: #111c29;
+  color: #c9d9dc;
+}
+
+.ui-arcade .scratch-toolbox button.active {
+  border-color: var(--arcade-cyan);
+  color: var(--arcade-cyan);
+  box-shadow: 0 0 18px rgba(87,242,242,.16);
+}
+
+.ui-arcade.validation-screen,
+.ui-arcade.budget-screen,
+.ui-arcade.wandering-screen,
+.ui-arcade.summary-screen {
+  background:
+    radial-gradient(circle at 50% 32%, rgba(41,112,139,.27), transparent 34%),
+    #050910;
+}
+
+.ui-arcade .validation-counter,
+.ui-arcade .budget-card,
+.ui-arcade .wandering-card,
+.ui-arcade .receipt {
+  border: 1px solid rgba(87,242,242,.36);
+  border-radius: 18px;
+  background: #101721;
+  color: #ecfafa;
+  box-shadow: 0 30px 90px rgba(0,0,0,.52), 0 0 40px rgba(87,242,242,.08);
+}
+
+.ui-arcade .scanner {
+  border-color: rgba(87,242,242,.4);
+  background: #060b12;
+  color: var(--arcade-cyan);
+  font-family: ui-monospace, monospace;
+}
+
+.ui-arcade .receipt-grid div,
+.ui-arcade .verified-list div,
+.ui-arcade .receipt-note {
+  border-color: rgba(87,242,242,.2);
+  background: #0b111a;
+  color: #dce9ea;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   UI C · NIGHT LEDGER — quiet tactile desk, album and receipt book
+   ────────────────────────────────────────────────────────────────────────── */
+.ui-ledger {
+  --ledger-paper: #f0e3c5;
+  --ledger-ink: #222a29;
+  --ledger-red: #9b2f2a;
+  --ledger-green: #243e35;
+  font-family: "Songti SC", "SimSun", serif;
+  color: var(--ledger-ink);
+}
+
+.ui-ledger.mall-scene {
+  background:
+    radial-gradient(circle at 76% 12%, rgba(255,225,161,.22), transparent 18%),
+    linear-gradient(135deg, rgba(8,19,26,.12), rgba(8,19,26,.4)),
+    #17272b;
+}
+
+.ui-ledger .mall-sign {
+  border: 0;
+  border-radius: 2px;
+  background: #eee1c4;
+  color: #27312f;
+  font-family: ui-monospace, monospace;
+  box-shadow: 8px 9px 0 rgba(0,0,0,.16);
+  transform: rotate(-2deg);
+}
+
+.ui-ledger .lottery-kiosk {
+  border: 16px solid #3b241b;
+  border-radius: 2px;
+  background: #d8c79f;
+  box-shadow: 0 34px 80px rgba(0,0,0,.42);
+  transform: rotate(.35deg);
+}
+
+.ui-ledger .kiosk-light {
+  background: #9b2f2a;
+  color: #f5dfae;
+  font-family: "STKaiti", "KaiTi", serif;
+  letter-spacing: .16em;
+}
+
+.ui-ledger.shop-screen {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255,216,147,.12), transparent 24%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.014) 0 2px, transparent 2px 24px),
+    #33231d;
+}
+
+.ui-ledger .shop-header {
+  max-width: 1510px;
+  margin: 0 auto;
+  border: 0;
+  background: transparent;
+  color: #f0e2c7;
+}
+
+.ui-ledger .shop-header h1 {
+  color: #fff1d1;
+  font-family: "STKaiti", "KaiTi", serif;
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 700;
+}
+
+.ui-ledger .shop-header .eyebrow,
+.ui-ledger .story-status {
+  color: #d7b77f;
+  font-family: ui-monospace, monospace;
+}
+
+.ui-ledger .session-stats {
+  overflow: visible;
+  border: 0;
+  border-radius: 2px;
+  background: #eee1c4;
+  color: #27312f;
+  box-shadow: 8px 9px 0 rgba(0,0,0,.18);
+  transform: rotate(.6deg);
+}
+
+.ui-ledger .session-stats span,
+.ui-ledger .session-stats strong {
+  color: inherit;
+  font-family: ui-monospace, monospace;
+}
+
+.ui-ledger .shop-body {
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 18px 24px 36px;
+}
+
+.ui-ledger .ticket-shelf {
+  order: 1;
+  border: 0;
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, transparent 49.7%, rgba(66,52,39,.16) 49.8% 50.2%, transparent 50.3%),
+    #f0e3c5;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.32),
+    inset 0 0 0 1px rgba(79,61,41,.18);
+}
+
+.ui-ledger .ticket-shelf::before {
+  display: block;
+  height: 18px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 38px,
+    rgba(49,45,37,.65) 38px 43px,
+    transparent 43px 52px
+  );
+  content: "";
+}
+
+.ui-ledger .shelf-head {
+  border-bottom: 1px dashed rgba(67,55,40,.3);
+  background: transparent;
+}
+
+.ui-ledger .model-badge {
+  border: 2px solid var(--ledger-red);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ledger-red);
+  font-family: "STKaiti", "KaiTi", serif;
+  transform: rotate(-2deg);
+}
+
+.ui-ledger .catalog-controls {
+  margin: 0 22px 20px;
+  border: 1px solid rgba(68,55,40,.25);
+  border-radius: 2px;
+  background: #e8dab9;
+}
+
+.ui-ledger .catalog-controls input {
+  border: 0;
+  border-bottom: 1px solid rgba(45,55,52,.32);
+  border-radius: 0;
+  background: transparent;
+}
+
+.ui-ledger .catalog-controls button {
+  border-radius: 2px;
+  background: transparent;
+  color: #4a514c;
+}
+
+.ui-ledger .catalog-controls button.active {
+  border-color: var(--ledger-red);
+  background: var(--ledger-red);
+  color: #f8e9c9;
+}
+
+.ui-ledger .ticket-products {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 0 22px 30px;
+}
+
+.ui-ledger .product-card {
+  display: grid;
+  grid-template-columns: minmax(180px, .82fr) minmax(220px, 1.18fr);
+  overflow: hidden;
+  border: 1px solid rgba(67,53,38,.25);
+  border-radius: 2px;
+  background: #f9edcf;
+  box-shadow: 5px 7px 0 rgba(70,50,32,.1);
+}
+
+.ui-ledger .product-card:nth-child(4n + 1) {
+  transform: rotate(-.2deg);
+}
+
+.ui-ledger .product-card:nth-child(4n + 3) {
+  transform: rotate(.2deg);
+}
+
+.ui-ledger .product-ticket {
+  min-height: 100%;
+  border-radius: 0;
+}
+
+.ui-ledger .product-detail {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 25px, rgba(52,69,64,.08) 25px 26px),
+    #f6e8c8;
+}
+
+.ui-ledger .distribution-note {
+  border: 1px dashed rgba(63,54,42,.28);
+  border-left: 3px solid var(--ledger-red);
+  border-radius: 0;
+  background: rgba(255,255,255,.2);
+}
+
+.ui-ledger .quantity-actions button,
+.ui-ledger .loose-ticket-picks button {
+  border-radius: 2px;
+  background: #eee0bf;
+}
+
+.ui-ledger .counter-panel {
+  order: 2;
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  overflow: visible;
+  border: 0;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 27px, rgba(40,65,58,.12) 27px 28px),
+    #e9dcbc;
+  box-shadow: 10px 12px 0 rgba(0,0,0,.19);
+  transform: rotate(.35deg);
+}
+
+.ui-ledger .counter-panel::before {
+  position: absolute;
+  top: -12px;
+  left: 24px;
+  width: 90px;
+  height: 26px;
+  background: rgba(194,175,130,.68);
+  content: "";
+  transform: rotate(-3deg);
+}
+
+.ui-ledger .counter-dialogue,
+.ui-ledger .story-memory,
+.ui-ledger .pay-panel,
+.ui-ledger .book-request-panel,
+.ui-ledger .session-log {
+  border-color: rgba(67,55,40,.2);
+  background: transparent;
+}
+
+.ui-ledger .speech {
+  border: 1px solid rgba(67,55,40,.25);
+  border-radius: 1px;
+  background: #f7e8c5;
+  box-shadow: 3px 4px 0 rgba(55,42,29,.09);
+  transform: rotate(-.7deg);
+}
+
+.ui-ledger .section-label,
+.ui-ledger .speech small {
+  color: var(--ledger-red);
+  font-family: "STKaiti", "KaiTi", serif;
+}
+
+.ui-ledger .shop-footer {
+  max-width: 1510px;
+  margin: 0 auto;
+  border: 0;
+  background: rgba(20,15,13,.35);
+  color: #d1c0a5;
+}
+
+.ui-ledger.scratch-screen {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255,219,153,.14), transparent 35%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.014) 0 2px, transparent 2px 26px),
+    #30211b;
+}
+
+.ui-ledger .scratch-topbar {
+  max-width: 1480px;
+  margin: 0 auto;
+  border: 0;
+  background: #e9dcbc;
+  color: #28322f;
+  box-shadow: 7px 9px 0 rgba(0,0,0,.18);
+}
+
+.ui-ledger .scratch-stage {
+  position: relative;
+  grid-template-columns: 230px minmax(520px, 1fr) 300px;
+  gap: 24px;
+  max-width: 1500px;
+  padding: 34px;
+}
+
+.ui-ledger .scratch-stage::before {
+  position: absolute;
+  inset: 12px 260px 12px 210px;
+  z-index: 0;
+  border: 1px solid rgba(228,208,164,.17);
+  background: #253d35;
+  box-shadow: inset 0 0 30px rgba(0,0,0,.25);
+  content: "";
+}
+
+.ui-ledger .scratch-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+.ui-ledger .counter-dialogue.compact {
+  align-self: start;
+  border-radius: 2px;
+  background: #eadcbb;
+  box-shadow: 7px 9px 0 rgba(0,0,0,.16);
+  transform: rotate(-1.1deg);
+}
+
+.ui-ledger .ticket-face {
+  filter: sepia(.04) drop-shadow(12px 18px 18px rgba(0,0,0,.36));
+  transform: rotate(.25deg);
+}
+
+.ui-ledger .scratch-actions {
+  align-self: end;
+  border: 1px solid rgba(63,47,32,.3);
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 26px, rgba(44,62,56,.1) 26px 27px),
+    #ecdfbf;
+  box-shadow: 8px 10px 0 rgba(0,0,0,.18);
+  transform: rotate(.6deg);
+}
+
+.ui-ledger .scratch-toolbox button {
+  border-radius: 2px;
+  background: #ded0ae;
+}
+
+.ui-ledger .scratch-toolbox button.active {
+  border-color: var(--ledger-red);
+  color: var(--ledger-red);
+  box-shadow: inset 0 0 0 1px var(--ledger-red);
+}
+
+.ui-ledger.validation-screen,
+.ui-ledger.budget-screen,
+.ui-ledger.wandering-screen,
+.ui-ledger.summary-screen {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255,220,150,.13), transparent 28%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 2px, transparent 2px 25px),
+    #32231c;
+}
+
+.ui-ledger .validation-counter,
+.ui-ledger .budget-card,
+.ui-ledger .wandering-card,
+.ui-ledger .receipt {
+  border: 0;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 28px, rgba(46,67,60,.09) 28px 29px),
+    #eee0c0;
+  color: #27312f;
+  box-shadow: 12px 16px 0 rgba(0,0,0,.2);
+}
+
+.ui-ledger .scanner {
+  border: 3px double #31443e;
+  border-radius: 2px;
+  background: #d9cba9;
+  color: #293b35;
+  font-family: ui-monospace, monospace;
+}
+
+.ui-ledger .verified-list div,
+.ui-ledger .receipt-grid div,
+.ui-ledger .receipt-note {
+  border-color: rgba(55,65,58,.24);
+  border-radius: 1px;
+  background: rgba(255,255,255,.18);
+}
+
+@media (max-width: 1180px) {
+  .ui-diorama .scratch-stage,
+  .ui-arcade .scratch-stage,
+  .ui-ledger .scratch-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-ledger .scratch-stage::before {
+    inset: 180px 14px 320px;
+  }
+
+  .ui-ledger .ticket-products {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .ui-diorama .shop-body,
+  .ui-arcade .shop-body,
+  .ui-ledger .shop-body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ui-diorama .counter-panel,
+  .ui-arcade .counter-panel,
+  .ui-ledger .counter-panel {
+    position: static;
+    order: 2;
+    width: auto;
+    height: auto;
+    max-height: none;
+    transform: none;
+  }
+
+  .ui-diorama .ticket-shelf,
+  .ui-arcade .ticket-shelf,
+  .ui-ledger .ticket-shelf {
+    order: 1;
+  }
+
+  .ui-diorama .ticket-products {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-arcade .ticket-products {
+    padding-inline: 14px;
+  }
+
+  .ui-arcade .product-card {
+    flex-basis: 88vw;
+    grid-template-columns: 1fr;
+  }
+
+  .ui-arcade .product-ticket {
+    min-height: 320px;
+  }
+
+  .ui-ledger .product-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .ui-diorama .shop-body,
+  .ui-ledger .shop-body {
+    padding-inline: 8px;
+  }
+
+  .ui-diorama .ticket-shelf,
+  .ui-ledger .ticket-shelf {
+    border-width: 2px;
+  }
+
+  .ui-arcade .shop-header,
+  .ui-ledger .shop-header {
+    position: static;
+  }
+
+  .ui-arcade .ticket-products {
+    display: grid;
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .ui-arcade .product-card {
+    display: grid;
+    width: 100%;
+    min-height: 0;
+    transform: none;
+  }
+
+  .ui-ledger .ticket-products {
+    padding-inline: 10px;
+  }
+
+  .ui-ledger .scratch-stage {
+    padding-inline: 8px;
+  }
+
+  .ui-ledger .scratch-stage::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-diorama .product-card,
+  .ui-arcade .product-card,
+  .ui-ledger .product-card,
+  .ui-ledger .ticket-face {
+    transition: none;
+    transform: none;
+  }
+}
+
 /* v0.5 · 零 Token 逛街剧情 */
 .play-style-picker {
   display: grid;

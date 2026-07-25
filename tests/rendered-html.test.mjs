@@ -25,7 +25,7 @@ async function render() {
   );
 }
 
-test("server-renders the v0.6.0 simulator shell and metadata", async () => {
+test("server-renders the v0.7.0 simulator shell and metadata", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
@@ -35,14 +35,15 @@ test("server-renders the v0.6.0 simulator shell and metadata", async () => {
   assert.match(html, /逛着逛着/);
   assert.match(html, /进去看看/);
   assert.match(html, /不使用真钱/);
-  assert.match(html, /og-v060\.png/);
+  assert.match(html, /og-v070\.png/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
-test("keeps the 50-ticket catalog, pictograms and zero-token story mode in source", async () => {
-  const [page, catalog, styles, research, roadmap, llmCost, packageJson] = await Promise.all([
+test("keeps the 60-ticket catalog, unified evaluator, three UIs and zero-token story mode", async () => {
+  const [page, catalog, engine, styles, research, roadmap, llmCost, packageJson] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
     readFile(new URL("app/ticket-catalog.ts", root), "utf8"),
+    readFile(new URL("app/ticket-engine.js", root), "utf8"),
     readFile(new URL("app/globals.css", root), "utf8"),
     readFile(new URL("docs/research.md", root), "utf8"),
     readFile(new URL("docs/ROADMAP.md", root), "utf8"),
@@ -80,6 +81,13 @@ test("keeps the 50-ticket catalog, pictograms and zero-token story mode in sourc
   assert.match(catalog, /name: "唐风宋韵"/);
   assert.match(catalog, /name: "彩虹宝石"/);
   assert.match(catalog, /name: "超级9"/);
+  assert.match(catalog, /name: "幸运123"/);
+  assert.match(catalog, /name: "非常有戏"/);
+  assert.match(catalog, /name: "采蘑菇"/);
+  assert.match(catalog, /name: "马到成功"/);
+  assert.match(catalog, /name: "新春大吉2026"/);
+  assert.match(engine, /evaluateVisiblePrize/);
+  assert.match(engine, /ticket mismatch/);
   assert.match(page, /逛街剧情模式/);
   assert.match(page, /本地剧情 · 0 Token/);
   assert.match(page, /MALL_EVENTS/);
@@ -89,10 +97,13 @@ test("keeps the 50-ticket catalog, pictograms and zero-token story mode in sourc
   assert.match(styles, /\.validation-screen/);
   assert.match(styles, /ticket-symbols-v1\.png/);
   assert.match(styles, /background: #b9bbb9/);
+  assert.match(styles, /\.ui-diorama/);
+  assert.match(styles, /\.ui-arcade/);
+  assert.match(styles, /\.ui-ledger/);
   assert.match(research, /MZ\/T 076—2024/);
   assert.match(research, /60\.88%/);
   assert.match(research, /爱玩的小宋/);
   assert.match(roadmap, /v0\.5/);
-  assert.equal(JSON.parse(packageJson).version, "0.6.0");
+  assert.equal(JSON.parse(packageJson).version, "0.7.0");
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });

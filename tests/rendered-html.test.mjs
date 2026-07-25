@@ -35,7 +35,7 @@ test("server-renders the v0.7.0 simulator shell and metadata", async () => {
   assert.match(html, /逛着逛着/);
   assert.match(html, /进去看看/);
   assert.match(html, /不使用真钱/);
-  assert.match(html, /og-v070\.png/);
+  assert.match(html, /og-v070\.jpg/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 

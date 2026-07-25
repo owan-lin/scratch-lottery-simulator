@@ -8,6 +8,7 @@ import {
   type TicketDistribution,
 } from "./ticket-catalog";
 import { calculateMeetingPrize, makeMeetingCells } from "./meeting-prize.js";
+import { makeBookPrizePool } from "./prize-model.js";
 
 type Phase = "mall" | "budget" | "wandering" | "shop" | "scratch" | "validation" | "summary";
 type PlayStyle = "quick" | "story";
@@ -369,16 +370,6 @@ function shuffle<T>(items: T[]) {
   return clone;
 }
 
-function weightedPick<T extends { weight: number }>(items: T[]) {
-  const total = items.reduce((sum, item) => sum + item.weight, 0);
-  let roll = Math.random() * total;
-  for (const item of items) {
-    roll -= item.weight;
-    if (roll <= 0) return item;
-  }
-  return items[items.length - 1];
-}
-
 function makeWinningNumbers(count: number) {
   return shuffle(Array.from({ length: 50 }, (_, index) => index + 1)).slice(0, count);
 }
@@ -403,6 +394,15 @@ function makeMatchCells(type: TicketType, prize: number, winningNumbers: number[
   return cells;
 }
 
+function calculateLucky6688Prize(cells: TicketCell[]) {
+  return cells.reduce((total, cell) => {
+    if (cell.label === "66" || cell.label === "88") return total + cell.amount;
+    if (cell.label === "顺") return total + cell.amount * 6;
+    if (cell.label === "发") return total + cell.amount * 8;
+    return total;
+  }, 0);
+}
+
 function makeSymbolCells(type: TicketType, prize: number) {
   const isMeeting = type.id.startsWith("meeting");
   if (isMeeting) {
@@ -412,6 +412,29 @@ function makeSymbolCells(type: TicketType, prize: number) {
       prizeAmounts: type.prizeTiers.slice(0, 5).map((tier) => tier.amount),
       artSymbols: type.artSymbols ?? [],
     }) as TicketCell[];
+  }
+
+  if (type.id === "lucky-6688") {
+    const decoys = ["65", "67", "68", "69", "76", "78", "80", "86", "87", "89"];
+    const cells: TicketCell[] = Array.from({ length: type.opportunities }, () => ({
+      label: pick(decoys),
+      amount: pick(type.prizeTiers.slice(0, 5)).amount,
+      kind: "plain",
+    }));
+    if (prize <= 0) return cells;
+    const index = randomInt(0, cells.length - 1);
+    const validMultipliers = ([6, 8] as const).filter(
+      (value) => prize % value === 0 && prize / value >= type.price,
+    );
+    const multiplier =
+      validMultipliers.length > 0 && Math.random() < 0.22 ? pick(validMultipliers) : 1;
+    const baseAmount = multiplier > 1 ? prize / multiplier : prize;
+    cells[index] = {
+      label: multiplier === 6 ? "顺" : multiplier === 8 ? "发" : pick(["66", "88"]),
+      amount: baseAmount,
+      kind: multiplier > 1 ? "multiplier" : "winning",
+    };
+    return cells;
   }
 
   const isStar = type.id === "star-shine";
@@ -546,7 +569,7 @@ function makeTripleCells(type: TicketType, prize: number) {
   });
   if (prize > 0) {
     const index = randomInt(0, cells.length - 1);
-    const symbol = pick(symbols);
+    const symbol = type.id === "three-yuan" ? "元宝" : pick(symbols);
     cells[index] = {
       label: `${symbol} · ${symbol} · ${symbol}`,
       amount: prize,
@@ -644,72 +667,6 @@ function makeCells(type: TicketType, prize: number, winningNumbers: number[]) {
   return makeMatchCells(type, prize, winningNumbers);
 }
 
-function makeBookPrizePool(type: TicketType) {
-  const model = type.distribution ?? {
-    targetReturn: 0.65,
-    smallWinsPerBook: [Math.ceil(type.bookSize * 0.27), Math.ceil(type.bookSize * 0.4)] as [
-      number,
-      number,
-    ],
-    hundredEveryBooks: 1.5,
-    jackpotEveryBooks: 50_000,
-    note: "体验模型",
-  };
-  const profiles = [
-    { value: 0.42, weight: 8 },
-    { value: 0.52, weight: 22 },
-    { value: 0.62, weight: 34 },
-    { value: 0.72, weight: 24 },
-    { value: 0.88, weight: 9 },
-    { value: 1.16, weight: 3 },
-  ];
-  const profile = weightedPick(profiles).value;
-  const target = Math.max(
-    type.price,
-    Math.round((type.price * type.bookSize * profile) / type.price) * type.price,
-  );
-  const winCount = Math.min(
-    type.bookSize - 1,
-    randomInt(model.smallWinsPerBook[0], model.smallWinsPerBook[1]),
-  );
-  const prizes = Array.from({ length: winCount }, () => type.price);
-  let remaining = Math.max(0, target - winCount * type.price);
-
-  if (Math.random() < 1 / model.hundredEveryBooks && prizes.length > 0) {
-    const hundredTier =
-      type.prizeTiers.find((tier) => tier.amount >= 100 && tier.amount <= 500)?.amount ?? 100;
-    if (hundredTier - type.price <= remaining) {
-      prizes[randomInt(0, prizes.length - 1)] = hundredTier;
-      remaining -= hundredTier - type.price;
-    }
-  }
-
-  let guard = 0;
-  while (remaining >= type.price && guard < 200 && prizes.length > 0) {
-    guard += 1;
-    const index = randomInt(0, prizes.length - 1);
-    const current = prizes[index];
-    const candidates = type.prizeTiers.filter(
-      (tier) =>
-        tier.amount > current &&
-        tier.amount - current <= remaining &&
-        tier.amount < type.topPrize &&
-        tier.amount <= 1_000,
-    );
-    if (candidates.length === 0) break;
-    const chosen = weightedPick(candidates).amount;
-    prizes[index] = chosen;
-    remaining -= chosen - current;
-  }
-  while (prizes.length < type.bookSize) prizes.push(0);
-
-  if (Math.random() < 1 / model.jackpotEveryBooks) {
-    const zeroIndex = prizes.findIndex((prize) => prize === 0);
-    prizes[zeroIndex >= 0 ? zeroIndex : prizes.length - 1] = type.topPrize;
-  }
-  return shuffle(prizes);
-}
-
 function createBook(type: TicketType): Book {
   const serial = `${String(randomInt(1, 999)).padStart(3, "0")}${String(
     randomInt(1, 999999),
@@ -721,6 +678,8 @@ function createBook(type: TicketType): Book {
     const cells = makeCells(type, prize, winningNumbers);
     const visiblePrize = type.id.startsWith("meeting")
       ? calculateMeetingPrize(cells)
+      : type.id === "lucky-6688"
+        ? calculateLucky6688Prize(cells)
       : prize;
     return {
       id: `${bookId}-${index + 1}`,
@@ -873,6 +832,65 @@ function ScratchLayer({
   );
 }
 
+const TICKET_GLYPH_MAP: Record<string, string> = {
+  元宝: "ingot",
+  喜鹊: "magpies",
+  祥云: "cloud",
+  灯笼: "lantern",
+  福袋: "moneybag",
+  钱袋: "moneybag",
+  中国结: "knot",
+  同心结: "knot",
+  锦鲤: "koi",
+  宝箱: "chest",
+  钻石: "diamond",
+  宝石: "diamond",
+  皇冠: "crown",
+  星: "star",
+  星星: "star",
+  星光: "star",
+  星芒: "star",
+  山峰: "mountain",
+  雪山: "mountain",
+  云海: "mountain",
+  竹叶: "bamboo",
+  熊猫: "panda",
+  雪花: "snowflake",
+  腾龙: "dragon",
+  龙凤: "dragon",
+  足球: "football",
+  奖杯: "trophy",
+  海浪: "wave",
+  椰树: "palm",
+};
+
+function TicketGlyph({ label }: { label: string }) {
+  const glyph = TICKET_GLYPH_MAP[label];
+  if (glyph) {
+    return (
+      <span
+        className={`ticket-glyph glyph-${glyph}`}
+        role="img"
+        aria-label={label}
+        title={label}
+      />
+    );
+  }
+  if (label.includes(" · ")) {
+    return (
+      <span className="ticket-glyph-run" aria-label={label}>
+        {label.split(" · ").map((part, index) => (
+          <span key={`${part}-${index}`}>
+            <TicketGlyph label={part} />
+            {index < label.split(" · ").length - 1 && <i>·</i>}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  return <span className="ticket-text-symbol">{label}</span>;
+}
+
 function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
   if (type.mode === "combo") {
     const titles =
@@ -903,7 +921,7 @@ function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
                 .filter((cell) => cell.section === group.id)
                 .map((cell, index) => (
                   <div className="ticket-cell" key={`${group.id}-${index}`}>
-                    <span>{cell.label}</span>
+                    <TicketGlyph label={cell.label} />
                     <strong>{formatMoney(cell.amount)}</strong>
                   </div>
                 ))}
@@ -925,7 +943,7 @@ function TicketCells({ ticket, type }: { ticket: Ticket; type: TicketType }) {
       <div className="ticket-grid">
         {ticket.cells.filter((cell) => cell.section !== "lucky").map((cell, index) => (
           <div className="ticket-cell" key={`${ticket.id}-${index}`}>
-            {type.mode !== "direct" && <span>{cell.label}</span>}
+            {type.mode !== "direct" && <TicketGlyph label={cell.label} />}
             {cell.amount > 0 && <strong>{formatMoney(cell.amount)}</strong>}
           </div>
         ))}
@@ -972,7 +990,7 @@ function TicketFace({
       <div className="ticket-decoration" aria-hidden="true" />
       <div className="ticket-art-motifs" aria-hidden="true">
         {(type.artSymbols ?? []).slice(0, 4).map((symbol) => (
-          <span key={symbol}>{symbol}</span>
+          <TicketGlyph key={symbol} label={symbol} />
         ))}
       </div>
       <header className="ticket-head">
@@ -1923,6 +1941,11 @@ export default function Home() {
                     <span>{type.issuer}</span>
                     <h2>{type.name}</h2>
                     <p>{type.subtitle}</p>
+                    <div className="product-symbols" aria-hidden="true">
+                      {(type.artSymbols ?? []).slice(0, 3).map((symbol) => (
+                        <TicketGlyph key={symbol} label={symbol} />
+                      ))}
+                    </div>
                     <strong>{formatMoney(type.price)}</strong>
                     <i>最高 {formatMoney(type.topPrize)}</i>
                     <em>

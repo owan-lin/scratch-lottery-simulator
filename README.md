@@ -14,13 +14,16 @@
 
 ## 当前版本
 
-`v0.5.1`：逛街剧情、38 款票库与喜相逢整本兑奖修复。
+`v0.6.0`：50 款票库、真实黑色图符、灰底黑字奖面与低密度高奖模型。
 
 - 商场进店、成年确认、预算封顶和离店结算
 - 需要持续拖动的逐步刮开，不再点击或碰到就整张揭开
 - 玩法区露出后只进入“待验票”，奖金在老板扫码后才入账
 - 模拟玩法区、保安区、物流/流水信息的真实票面结构
-- 参考官方资料建立 38 个配置，覆盖 10、20、30、50 元
+- 参考官方资料建立 50 个配置，覆盖 10、20、30、50 元
+- 新增“66顺88发”“连中三元”“唐风宋韵”“国泰民安”“有福”等真实玩法
+- 刮开后统一使用实体票常见的灰底黑字奖面，20 枚黑色印刷图符不再用文字代替
+- 普通整本与百元以上奖档分开建模，显著降低 100–1000 元奖档密度
 - 当日门店随机上架 14 款，可按票名、玩法与面值筛选
 - 金额直出玩法的未中奖位置为空白，奖金只在随机位置出现
 - 每个票种按整本预生成结果，同款可同时有 2–4 个已拆开本
@@ -65,7 +68,7 @@ npm test
 - [CHANGELOG.md](CHANGELOG.md)：版本变化
 - [docs/ROADMAP.md](docs/ROADMAP.md)：短期迭代计划
 - [docs/research.md](docs/research.md)：票种调查与概率建模说明
-- [docs/ticket-catalog.md](docs/ticket-catalog.md)：38 款票种目录与证据等级
+- [docs/ticket-catalog.md](docs/ticket-catalog.md)：50 款票种目录与证据等级
 - [docs/PRODUCT_REVIEW.md](docs/PRODUCT_REVIEW.md)：Section Infi 产品审视与迭代决策
 - [docs/LLM_COST.md](docs/LLM_COST.md)：剧情模式与大模型 Token 预算
 - GitHub Actions 会在推送和 Pull Request 时执行构建与测试

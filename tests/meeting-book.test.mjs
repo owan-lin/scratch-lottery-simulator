@@ -12,7 +12,7 @@ import {
 const variants = [
   { opportunities: 15, price: 10, symbols: ["喜鹊", "祥云", "阿喜", "囍"] },
   { opportunities: 25, price: 20, symbols: ["仙鹤", "喜鹊", "阿喜", "囍"] },
-  { opportunities: 30, price: 30, symbols: ["鸳鸯", "灯笼", "阿喜", "囍"] },
+  { opportunities: 40, price: 30, symbols: ["鸳鸯", "灯笼", "阿喜", "囍"] },
 ];
 
 test("喜相逢的干扰图符永远不包含中奖图符", () => {

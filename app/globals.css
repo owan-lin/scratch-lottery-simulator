@@ -2288,12 +2288,292 @@ button:disabled {
   }
 }
 
+/* v0.6 cascade locks */
+.ticket-art-motifs .ticket-glyph {
+  background-color: rgba(255, 255, 255, 0.82);
+  border: 0;
+  border-radius: 50%;
+  color: transparent;
+  height: 42px;
+  opacity: 1;
+  padding: 0;
+  width: 42px;
+}
+
+.scratch-zone {
+  background: #b9bbb9;
+  border-color: rgba(31, 31, 29, 0.72);
+  color: #101210;
+}
+
+.ticket-cell,
+.ticket-cell.cell-winning,
+.ticket-cell.cell-multiplier,
+.ticket-direct .ticket-cell.cell-winning {
+  background: #c7c9c7;
+  border-color: #777b78;
+  box-shadow: none;
+  color: #101210;
+}
+
+.ticket-cell:nth-child(2n) {
+  background: #bfc2bf;
+}
+
 /* v0.5 · 零 Token 逛街剧情 */
 .play-style-picker {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 9px;
   margin: 18px 0;
+}
+
+/* v0.6 · 实体柜台推荐版 */
+:root {
+  --paper: #eee6d6;
+  --paper-deep: #d8cdb9;
+  --ink: #161917;
+  --muted: #676158;
+  --green: #164c43;
+  --red: #c7352d;
+  --gold: #d8a941;
+  --line: rgba(23, 27, 24, 0.17);
+  --shadow: 0 28px 78px rgba(37, 27, 11, 0.2);
+}
+
+body {
+  background:
+    radial-gradient(circle at 15% -8%, rgba(255, 255, 255, 0.96), transparent 34rem),
+    radial-gradient(circle at 92% 16%, rgba(210, 158, 62, 0.13), transparent 28rem),
+    linear-gradient(135deg, #f3ecdf, #e8dfce);
+}
+
+.shop-header,
+.scratch-topbar {
+  backdrop-filter: blur(18px) saturate(1.2);
+  background: rgba(245, 239, 226, 0.9);
+  border-bottom: 1px solid rgba(39, 34, 25, 0.11);
+  box-shadow: 0 8px 32px rgba(42, 34, 23, 0.08);
+}
+
+.counter-panel,
+.ticket-shelf,
+.budget-card,
+.wandering-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(248, 242, 229, 0.65));
+  border: 1px solid rgba(68, 57, 41, 0.13);
+  box-shadow: 0 24px 70px rgba(55, 42, 22, 0.12);
+}
+
+.product-card {
+  border-color: rgba(57, 49, 36, 0.15);
+  box-shadow: 0 18px 44px rgba(55, 42, 22, 0.1);
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.product-card:hover {
+  box-shadow: 0 26px 60px rgba(55, 42, 22, 0.18);
+  transform: translateY(-3px);
+}
+
+.product-ticket {
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+}
+
+.product-ticket::before {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.18) 0 2px, transparent 3px),
+    repeating-linear-gradient(135deg, transparent 0 13px, rgba(255, 255, 255, 0.055) 14px 15px);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.product-symbols {
+  align-items: center;
+  display: flex;
+  gap: 0.38rem;
+  margin-top: 0.8rem;
+  min-height: 34px;
+}
+
+.product-symbols .ticket-glyph {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  border-radius: 50%;
+  height: 34px;
+  mix-blend-mode: screen;
+  opacity: 0.9;
+  width: 34px;
+}
+
+.product-symbols .ticket-text-symbol {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 50%;
+  color: inherit;
+  display: inline-flex;
+  font: 900 0.68rem var(--font-geist-mono), monospace;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.ticket-face {
+  background:
+    radial-gradient(circle at 88% 9%, rgba(255, 255, 255, 0.16), transparent 13rem),
+    repeating-linear-gradient(135deg, transparent 0 16px, rgba(255, 255, 255, 0.035) 17px 18px),
+    var(--ticket-color);
+  border: 1px solid color-mix(in srgb, var(--ticket-accent) 70%, #281a0f);
+  box-shadow:
+    0 30px 70px rgba(27, 20, 9, 0.28),
+    inset 0 0 0 6px rgba(255, 255, 255, 0.05);
+}
+
+.ticket-head h2 {
+  text-shadow: 0 2px 0 rgba(29, 16, 8, 0.24);
+}
+
+.scratch-zone {
+  background: #b9bbb9;
+  border-color: rgba(31, 31, 29, 0.72);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.22),
+    inset 0 8px 26px rgba(28, 31, 29, 0.12);
+  color: #111311;
+}
+
+.ticket-cell {
+  background: #c7c9c7;
+  border-color: #777b78;
+  color: #101210;
+}
+
+.ticket-cell:nth-child(2n) {
+  background: #bfc2bf;
+}
+
+.ticket-cell span,
+.ticket-cell strong,
+.ticket-text-symbol,
+.winning-row span {
+  color: #101210;
+}
+
+.ticket-cell strong {
+  letter-spacing: -0.03em;
+}
+
+.winning-row b {
+  background: #d0d2d0;
+  border: 1px solid #777b78;
+  color: #101210;
+}
+
+.scratch-layer {
+  filter: saturate(0.15) contrast(1.05);
+}
+
+.ticket-glyph {
+  background-image: url("/assets/ticket-symbols-v1.png");
+  background-repeat: no-repeat;
+  background-size: 500% 400%;
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 34px;
+  mix-blend-mode: multiply;
+  width: 34px;
+}
+
+.glyph-ingot { background-position: 0 0; }
+.glyph-magpies { background-position: 25% 0; }
+.glyph-cloud { background-position: 50% 0; }
+.glyph-lantern { background-position: 75% 0; }
+.glyph-moneybag { background-position: 100% 0; }
+.glyph-knot { background-position: 0 33.333%; }
+.glyph-koi { background-position: 25% 33.333%; }
+.glyph-chest { background-position: 50% 33.333%; }
+.glyph-diamond { background-position: 75% 33.333%; }
+.glyph-crown { background-position: 100% 33.333%; }
+.glyph-star { background-position: 0 66.666%; }
+.glyph-mountain { background-position: 25% 66.666%; }
+.glyph-bamboo { background-position: 50% 66.666%; }
+.glyph-panda { background-position: 75% 66.666%; }
+.glyph-snowflake { background-position: 100% 66.666%; }
+.glyph-dragon { background-position: 0 100%; }
+.glyph-football { background-position: 25% 100%; }
+.glyph-trophy { background-position: 50% 100%; }
+.glyph-wave { background-position: 75% 100%; }
+.glyph-palm { background-position: 100% 100%; }
+
+.ticket-glyph-run {
+  align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.08rem;
+  justify-content: center;
+}
+
+.ticket-glyph-run > span {
+  align-items: center;
+  display: inline-flex;
+}
+
+.ticket-glyph-run i {
+  color: #323532;
+  font-size: 0.7rem;
+  font-style: normal;
+  margin: 0 0.05rem;
+}
+
+.ticket-text-symbol {
+  font: 900 0.72rem var(--font-geist-mono), "Microsoft YaHei", sans-serif;
+}
+
+.ticket-art-motifs .ticket-glyph {
+  background-color: rgba(255, 255, 255, 0.82);
+  border-radius: 50%;
+  height: 42px;
+  opacity: 0.5;
+  width: 42px;
+}
+
+.face-three-yuan .ticket-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.face-three-yuan .ticket-cell {
+  min-height: 54px;
+}
+
+.face-lucky-6688 .ticket-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.face-lucky-6688 .ticket-cell {
+  min-height: 62px;
+}
+
+.face-lucky-6688 .ticket-text-symbol {
+  font-size: 1rem;
+}
+
+@media (max-width: 720px) {
+  .ticket-glyph {
+    height: 28px;
+    width: 28px;
+  }
+
+  .face-three-yuan .ticket-grid,
+  .face-lucky-6688 .ticket-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .play-style-picker button {
@@ -2605,4 +2885,36 @@ button:disabled {
   .ticket-path .ticket-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* v0.6 final cascade locks */
+.ticket-art-motifs .ticket-glyph {
+  background-color: rgba(255, 255, 255, 0.82);
+  border: 0;
+  border-radius: 50%;
+  color: transparent;
+  height: 42px;
+  opacity: 1;
+  padding: 0;
+  width: 42px;
+}
+
+.scratch-zone {
+  background: #b9bbb9;
+  border-color: rgba(31, 31, 29, 0.72);
+  color: #101210;
+}
+
+.ticket-cell,
+.ticket-cell.cell-winning,
+.ticket-cell.cell-multiplier,
+.ticket-direct .ticket-cell.cell-winning {
+  background: #c7c9c7;
+  border-color: #777b78;
+  box-shadow: none;
+  color: #101210;
+}
+
+.ticket-cell:nth-child(2n) {
+  background: #bfc2bf;
 }

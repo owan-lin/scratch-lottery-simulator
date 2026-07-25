@@ -2918,3 +2918,79 @@ body {
 .ticket-cell:nth-child(2n) {
   background: #bfc2bf;
 }
+
+/* UI branch final override · 红金老式福彩站 */
+:root {
+  --paper: #efe0c5;
+  --paper-deep: #cfb88f;
+  --ink: #24120e;
+  --muted: #775e4f;
+  --green: #7e1718;
+  --red: #b3131b;
+  --gold: #e0ae36;
+  --line: rgba(88, 33, 22, 0.22);
+  --shadow: 0 28px 76px rgba(83, 23, 16, 0.25);
+}
+
+body {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255, 244, 205, 0.9), transparent 28rem),
+    repeating-linear-gradient(90deg, rgba(126, 23, 24, 0.035) 0 1px, transparent 1px 24px),
+    #ead9ba;
+}
+
+.shop-header,
+.scratch-topbar {
+  background: rgba(122, 20, 22, 0.95);
+  border-bottom: 4px solid #dfad3f;
+  color: #fff1c9;
+}
+
+.shop-header .eyebrow,
+.shop-header span,
+.scratch-topbar span {
+  color: #f6d987;
+}
+
+.counter-panel,
+.ticket-shelf,
+.budget-card,
+.wandering-card {
+  background: linear-gradient(rgba(255, 250, 232, 0.95), rgba(242, 224, 190, 0.92));
+  border: 2px solid rgba(143, 56, 35, 0.25);
+}
+
+.product-card {
+  border: 2px solid rgba(139, 48, 31, 0.24);
+  box-shadow:
+    0 16px 0 rgba(116, 24, 25, 0.08),
+    0 28px 54px rgba(83, 23, 16, 0.16);
+}
+
+.product-detail {
+  background:
+    repeating-linear-gradient(0deg, rgba(135, 64, 39, 0.035) 0 1px, transparent 1px 6px),
+    #fff7e5;
+}
+
+.primary-action {
+  background: linear-gradient(135deg, #a3151b, #751114);
+  border: 2px solid #e2b747;
+  box-shadow: 0 6px 0 #5d1012;
+}
+
+.mall-scene {
+  background: linear-gradient(rgba(255, 246, 221, 0.78) 0 68%, #c9ae83 68%), #ead7b3;
+}
+
+.lottery-kiosk {
+  border-color: #8f1719;
+  box-shadow:
+    0 0 0 8px #d4a33c,
+    0 32px 70px rgba(66, 17, 14, 0.32);
+}
+
+.kiosk-light {
+  background: linear-gradient(#c61e25, #8e1116);
+  border-bottom: 5px solid #edc35b;
+}

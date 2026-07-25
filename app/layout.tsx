@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const siteUrl = "https://lucky-ticket-shop-owanlin.owanlin.chatgpt.site";
+const siteUrl = "https://lucky-ticket-night-kiosk-owanlin.owanlin.chatgpt.site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

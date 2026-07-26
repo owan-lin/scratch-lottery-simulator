@@ -54,6 +54,8 @@ test("keeps the 60-ticket catalog, unified evaluator and direct-to-shop main flo
   assert.match(page, /tool\.width/);
   assert.match(page, /SCRATCH_COMPLETION_PERCENT = 80/);
   assert.match(page, /context\.clearRect/);
+  assert.match(page, /aria-keyshortcuts="Enter Space"/);
+  assert.match(page, /revealAndComplete/);
   assert.match(page, /拿给老板验票/);
   assert.match(page, /请老板逐张验票/);
   assert.match(page, /保安区/);
@@ -93,12 +95,14 @@ test("keeps the 60-ticket catalog, unified evaluator and direct-to-shop main flo
   assert.doesNotMatch(page, /逛街剧情模式|本地剧情|MALL_EVENTS|storyScene|storyTurn/);
   assert.match(page, /\["all", 5, 10, 20, 30, 50\]/);
   assert.match(page, /budgetInput > 10_000/);
+  assert.match(page, /aria-describedby="budget-constraint"/);
   assert.match(page, /evaluateVisiblePrize\(type, ticket\.winningNumbers, ticket\.cells\)/);
   assert.match(llmCost, /5,400–9,800 Token/);
   assert.match(llmCost, /不能决定奖项/);
   assert.match(styles, /\.ticket-direct \.ticket-cell/);
   assert.match(styles, /\.validation-screen/);
-  assert.match(styles, /ticket-symbols-v1\.png/);
+  assert.doesNotMatch(styles, /ticket-symbols-v1\.png/);
+  assert.match(styles, /v0\.8 final lock: SVG is the only pictogram source/);
   assert.match(styles, /background: #b9bbb9/);
   assert.match(styles, /\.ui-diorama/);
   assert.match(styles, /\.ui-arcade/);

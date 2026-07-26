@@ -32,7 +32,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -41,7 +42,9 @@ button {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+.scratch-layer:focus-visible {
   outline: 3px solid #287c65;
   outline-offset: 3px;
 }
@@ -520,6 +523,18 @@ button:disabled {
   align-items: center;
   display: flex;
   font-weight: 850;
+}
+
+.custom-budget .budget-copy {
+  align-items: flex-start;
+  display: grid;
+  gap: 2px;
+}
+
+.custom-budget .budget-copy small {
+  color: var(--muted);
+  font-size: 0.63rem;
+  font-weight: 500;
 }
 
 .custom-budget input {
@@ -3641,38 +3656,6 @@ body {
   filter: saturate(0.15) contrast(1.05);
 }
 
-.ticket-glyph {
-  background-image: url("/assets/ticket-symbols-v1.png");
-  background-repeat: no-repeat;
-  background-size: 500% 400%;
-  display: inline-block;
-  flex: 0 0 auto;
-  height: 34px;
-  mix-blend-mode: multiply;
-  width: 34px;
-}
-
-.glyph-ingot { background-position: 0 0; }
-.glyph-magpies { background-position: 25% 0; }
-.glyph-cloud { background-position: 50% 0; }
-.glyph-lantern { background-position: 75% 0; }
-.glyph-moneybag { background-position: 100% 0; }
-.glyph-knot { background-position: 0 33.333%; }
-.glyph-koi { background-position: 25% 33.333%; }
-.glyph-chest { background-position: 50% 33.333%; }
-.glyph-diamond { background-position: 75% 33.333%; }
-.glyph-crown { background-position: 100% 33.333%; }
-.glyph-star { background-position: 0 66.666%; }
-.glyph-mountain { background-position: 25% 66.666%; }
-.glyph-bamboo { background-position: 50% 66.666%; }
-.glyph-panda { background-position: 75% 66.666%; }
-.glyph-snowflake { background-position: 100% 66.666%; }
-.glyph-dragon { background-position: 0 100%; }
-.glyph-football { background-position: 25% 100%; }
-.glyph-trophy { background-position: 50% 100%; }
-.glyph-wave { background-position: 75% 100%; }
-.glyph-palm { background-position: 100% 100%; }
-
 .ticket-glyph-run {
   align-items: center;
   display: flex;
@@ -3916,4 +3899,36 @@ body {
 
 .ticket-cell:nth-child(2n) {
   background: #bfc2bf;
+}
+
+/* v0.8 final lock: SVG is the only pictogram source on every revealed ticket. */
+.ticket-glyph,
+.ticket-art-motifs .ticket-glyph,
+.product-symbols .ticket-glyph {
+  display: inline-grid;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: none !important;
+  background-image: none !important;
+  color: #101210 !important;
+  mix-blend-mode: normal;
+  opacity: 1;
+}
+
+.ticket-glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.ticket-art-motifs .ticket-glyph,
+.product-symbols .ticket-glyph {
+  width: 34px;
+  height: 34px;
+  color: var(--ticket-ink) !important;
 }

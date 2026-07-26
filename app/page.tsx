@@ -470,6 +470,17 @@ function ScratchLayer({
     onProgressRef.current(0);
   }, [ticketId]);
 
+  const revealAndComplete = useCallback(() => {
+    if (completedRef.current) return;
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    completedRef.current = true;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    onProgressRef.current(100);
+    onCompleteRef.current();
+  }, []);
+
   const measure = useCallback(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d", { willReadFrequently: true });
@@ -483,13 +494,8 @@ function ScratchLayer({
     }
     const progress = Math.min(100, Math.round((erased / sampled) * 100));
     onProgressRef.current(progress);
-    if (progress >= SCRATCH_COMPLETION_PERCENT && !completedRef.current) {
-      completedRef.current = true;
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      onProgressRef.current(100);
-      onCompleteRef.current();
-    }
-  }, []);
+    if (progress >= SCRATCH_COMPLETION_PERCENT) revealAndComplete();
+  }, [revealAndComplete]);
 
   const scratch = useCallback(
     (clientX: number, clientY: number) => {
@@ -525,7 +531,16 @@ function ScratchLayer({
     <canvas
       ref={canvasRef}
       className="scratch-layer"
-      aria-label={`银色彩票覆盖膜，使用${tool.name}按住并来回刮开`}
+      role="button"
+      tabIndex={0}
+      aria-keyshortcuts="Enter Space"
+      aria-label={`银色彩票覆盖膜，使用${tool.name}按住并来回刮开；键盘用户可按回车或空格完整揭开`}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          revealAndComplete();
+        }
+      }}
       onPointerDown={(event) => {
         drawingRef.current = true;
         lastPointRef.current = null;
@@ -1341,7 +1356,10 @@ export default function Home() {
               ))}
             </div>
             <label className="custom-budget">
-              自定预算
+              <span className="budget-copy">
+                自定预算
+                <small id="budget-constraint">5—10000 元，且必须是 5 元的倍数</small>
+              </span>
               <span>
                 ¥
                 <input
@@ -1351,6 +1369,7 @@ export default function Home() {
                   type="number"
                   value={budgetInput}
                   aria-invalid={!budgetIsValid}
+                  aria-describedby="budget-constraint"
                   onChange={(event) => {
                     const value = Number(event.target.value);
                     setBudgetInput(Number.isFinite(value) ? value : 0);

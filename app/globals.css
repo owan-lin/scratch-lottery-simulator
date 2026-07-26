@@ -2606,7 +2606,6 @@ button:disabled {
 }
 
 .ui-diorama.budget-screen,
-.ui-diorama.wandering-screen,
 .ui-diorama.summary-screen {
   background:
     radial-gradient(circle at 50% 8%, rgba(255,252,232,.95), transparent 35%),
@@ -2614,7 +2613,6 @@ button:disabled {
 }
 
 .ui-diorama .budget-card,
-.ui-diorama .wandering-card,
 .ui-diorama .receipt {
   border: 8px solid #5f3c27;
   background: #fff7e7;
@@ -2703,8 +2701,7 @@ button:disabled {
   box-shadow: 0 14px 36px rgba(0,0,0,.34);
 }
 
-.ui-arcade .shop-header .eyebrow,
-.ui-arcade .story-status {
+.ui-arcade .shop-header .eyebrow {
   color: var(--arcade-cyan);
   font-family: ui-monospace, "Cascadia Mono", monospace;
   letter-spacing: .12em;
@@ -2770,7 +2767,6 @@ button:disabled {
 }
 
 .ui-arcade .counter-dialogue,
-.ui-arcade .story-memory,
 .ui-arcade .pay-panel,
 .ui-arcade .book-request-panel,
 .ui-arcade .session-log {
@@ -2779,8 +2775,7 @@ button:disabled {
   color: #dce9ea;
 }
 
-.ui-arcade .speech,
-.ui-arcade .story-memory {
+.ui-arcade .speech {
   border: 1px solid rgba(87,242,242,.24);
   background: rgba(16,28,37,.9);
   color: #efffff;
@@ -2973,7 +2968,6 @@ button:disabled {
 
 .ui-arcade.validation-screen,
 .ui-arcade.budget-screen,
-.ui-arcade.wandering-screen,
 .ui-arcade.summary-screen {
   background:
     radial-gradient(circle at 50% 32%, rgba(41,112,139,.27), transparent 34%),
@@ -2982,7 +2976,6 @@ button:disabled {
 
 .ui-arcade .validation-counter,
 .ui-arcade .budget-card,
-.ui-arcade .wandering-card,
 .ui-arcade .receipt {
   border: 1px solid rgba(87,242,242,.36);
   border-radius: 18px;
@@ -3073,8 +3066,7 @@ button:disabled {
   font-weight: 700;
 }
 
-.ui-ledger .shop-header .eyebrow,
-.ui-ledger .story-status {
+.ui-ledger .shop-header .eyebrow {
   color: #d7b77f;
   font-family: ui-monospace, monospace;
 }
@@ -3242,7 +3234,6 @@ button:disabled {
 }
 
 .ui-ledger .counter-dialogue,
-.ui-ledger .story-memory,
 .ui-ledger .pay-panel,
 .ui-ledger .book-request-panel,
 .ui-ledger .session-log {
@@ -3349,7 +3340,6 @@ button:disabled {
 
 .ui-ledger.validation-screen,
 .ui-ledger.budget-screen,
-.ui-ledger.wandering-screen,
 .ui-ledger.summary-screen {
   background:
     radial-gradient(circle at 50% 18%, rgba(255,220,150,.13), transparent 28%),
@@ -3359,7 +3349,6 @@ button:disabled {
 
 .ui-ledger .validation-counter,
 .ui-ledger .budget-card,
-.ui-ledger .wandering-card,
 .ui-ledger .receipt {
   border: 0;
   border-radius: 2px;
@@ -3501,14 +3490,6 @@ button:disabled {
   }
 }
 
-/* v0.5 · 零 Token 逛街剧情 */
-.play-style-picker {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 9px;
-  margin: 18px 0;
-}
-
 /* v0.6 · 实体柜台推荐版 */
 :root {
   --paper: #eee6d6;
@@ -3539,8 +3520,7 @@ body {
 
 .counter-panel,
 .ticket-shelf,
-.budget-card,
-.wandering-card {
+.budget-card {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(248, 242, 229, 0.65));
   border: 1px solid rgba(68, 57, 41, 0.13);
@@ -3754,168 +3734,6 @@ body {
   .face-three-yuan .ticket-grid,
   .face-lucky-6688 .ticket-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.play-style-picker button {
-  display: grid;
-  gap: 6px;
-  min-height: 92px;
-  padding: 13px;
-  border: 1px solid rgba(59, 44, 29, 0.15);
-  border-radius: 13px;
-  background: #fffdf8;
-  color: #3c3126;
-  text-align: left;
-  cursor: pointer;
-}
-
-.play-style-picker button b {
-  font-size: 13px;
-}
-
-.play-style-picker button span {
-  color: #796c5c;
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.play-style-picker button.selected {
-  border-color: #a43028;
-  background: #fff0e7;
-  box-shadow: 0 0 0 2px rgba(164, 48, 40, 0.1);
-}
-
-.play-style-picker button.llm-disabled {
-  border-style: dashed;
-  cursor: not-allowed;
-  opacity: 0.62;
-}
-
-.wandering-screen {
-  min-height: 100svh;
-  padding: clamp(24px, 5vw, 70px);
-  background:
-    linear-gradient(180deg, rgba(31, 44, 52, 0.85), rgba(22, 29, 34, 0.96)),
-    repeating-linear-gradient(90deg, #4e5c64 0 1px, transparent 1px 96px);
-  color: #fff6e8;
-}
-
-.wandering-card {
-  width: min(980px, 100%);
-  margin: auto;
-}
-
-.wandering-card header {
-  max-width: 700px;
-}
-
-.wandering-card h1 {
-  margin: 12px 0;
-  font-family: var(--font-display);
-  font-size: clamp(42px, 7vw, 82px);
-  line-height: 0.96;
-}
-
-.wandering-card header p {
-  max-width: 640px;
-  color: rgba(255, 246, 232, 0.72);
-  line-height: 1.7;
-}
-
-.mall-event-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 13px;
-  margin: 32px 0 20px;
-}
-
-.mall-event-list button {
-  display: grid;
-  gap: 10px;
-  min-height: 210px;
-  align-content: start;
-  padding: 21px;
-  border: 1px solid rgba(255, 246, 232, 0.18);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.07);
-  color: #fff6e8;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 160ms ease, background 160ms ease;
-}
-
-.mall-event-list button:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.mall-event-list button span {
-  color: #f0b86b;
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.12em;
-}
-
-.mall-event-list button b {
-  font-size: 18px;
-}
-
-.mall-event-list button small {
-  color: rgba(255, 246, 232, 0.66);
-  font-size: 12px;
-  line-height: 1.65;
-}
-
-.wandering-card .text-action {
-  color: #fff0d6;
-}
-
-.story-status {
-  display: inline-flex;
-  margin-top: 8px;
-  padding: 6px 10px;
-  border: 1px solid rgba(121, 65, 37, 0.18);
-  border-radius: 999px;
-  background: #fff4df;
-  color: #8b3b2d;
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-}
-
-.story-memory {
-  padding: 13px 14px;
-  border-left: 3px solid #b65942;
-  border-radius: 5px 13px 13px 5px;
-  background: #fff5e5;
-}
-
-.story-memory b {
-  color: #873b2f;
-  font-size: 11px;
-}
-
-.story-memory p {
-  margin: 5px 0;
-  color: #4d4135;
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.story-memory small {
-  color: #8a7d6c;
-  font-size: 9px;
-}
-
-@media (max-width: 800px) {
-  .play-style-picker,
-  .mall-event-list {
-    grid-template-columns: 1fr;
-  }
-
-  .mall-event-list button {
-    min-height: 150px;
   }
 }
 

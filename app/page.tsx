@@ -50,8 +50,7 @@ import { makeBookPrizePool } from "./prize-model.js";
 import { evaluateVisiblePrize, makeTicketOutcome } from "./ticket-engine.js";
 import { UI_VARIANT } from "./ui-variant";
 
-type Phase = "mall" | "budget" | "wandering" | "shop" | "scratch" | "validation" | "summary";
-type PlayStyle = "quick" | "story";
+type Phase = "mall" | "budget" | "shop" | "scratch" | "validation" | "summary";
 type PlayMode =
   | "direct"
   | "match"
@@ -354,49 +353,9 @@ const STORE_MOODS = [
   "商场打烊前一小时 · 有些票已经售罄",
 ];
 
-const MALL_EVENTS = [
-  {
-    id: "milk-tea",
-    time: "17:46",
-    title: "先去取刚点好的奶茶",
-    scene: "杯壁还挂着水珠，你拎着奶茶重新经过彩票店。",
-    ownerLead: "奶茶先放右边，别碰到票。你刚才是不是已经在门口看了一圈？",
-  },
-  {
-    id: "arcade",
-    time: "17:51",
-    title: "在抓娃娃机旁看一会儿",
-    scene: "隔壁电玩区响了几轮庆祝音效，你一只娃娃也没抓到。",
-    ownerLead: "抓娃娃也没抓到吧？彩票更不能上头，先把预算说好。",
-  },
-  {
-    id: "supermarket",
-    time: "17:48",
-    title: "先把超市购物袋寄存",
-    scene: "服务台给了你一块寄存牌，双手空出来后轻松多了。",
-    ownerLead: "东西寄存好了再刮是对的，票面别被购物袋蹭坏。",
-  },
-  {
-    id: "friend",
-    time: "17:44",
-    title: "朋友发消息问你在哪",
-    scene: "你回了句“负一层随便逛逛”，没有提彩票店。",
-    ownerLead: "朋友还在等你？那就少拿几张，刮完别耽误约好的事。",
-  },
-  {
-    id: "queue",
-    time: "17:54",
-    title: "等前一位顾客验完票",
-    scene: "前面的人把一小摞票推过去，机器连续响了几声。",
-    ownerLead: "久等了。刚才那一摞有奖没奖都验完了，现在轮到你。",
-  },
-  {
-    id: "rain",
-    time: "18:02",
-    title: "商场广播说外面下雨了",
-    scene: "你暂时不急着走，顺着扶梯口又逛回彩票柜台。",
-    ownerLead: "外面正下雨，在店里慢慢看可以，预算还是先定死。",
-  },
+const BUDGET_PROMPTS = [
+  "先问一句：成年了吗？今天准备拿多少玩？",
+  "身份证不用掏，先确认你满18了。预算打算定多少？",
 ] as const;
 
 const SCRATCH_TOOLS: ScratchTool[] = [
@@ -404,6 +363,7 @@ const SCRATCH_TOOLS: ScratchTool[] = [
   { id: "small-scraper", name: "小号刮片", detail: "中口 · 日常省力", width: 30, glyph: "S" },
   { id: "wide-scraper", name: "宽口刮铲", detail: "宽口 · 整本效率", width: 48, glyph: "L" },
 ];
+const SCRATCH_COMPLETION_PERCENT = 80;
 
 const money = new Intl.NumberFormat("zh-CN");
 
@@ -523,8 +483,10 @@ function ScratchLayer({
     }
     const progress = Math.min(100, Math.round((erased / sampled) * 100));
     onProgressRef.current(progress);
-    if (progress >= 72 && !completedRef.current) {
+    if (progress >= SCRATCH_COMPLETION_PERCENT && !completedRef.current) {
       completedRef.current = true;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      onProgressRef.current(100);
       onCompleteRef.current();
     }
   }, []);
@@ -909,8 +871,8 @@ function MallScene({ onEnter }: { onEnter: () => void }) {
 
 export default function Home() {
   const [phase, setPhase] = useState<Phase>("mall");
-  const [playStyle, setPlayStyle] = useState<PlayStyle>("story");
   const [budgetInput, setBudgetInput] = useState(100);
+  const [budgetPrompt, setBudgetPrompt] = useState(() => pick(BUDGET_PROMPTS));
   const [isAdult, setIsAdult] = useState(false);
   const [initialBudget, setInitialBudget] = useState(0);
   const [wallet, setWallet] = useState(0);
@@ -919,7 +881,7 @@ export default function Home() {
   const [rolloverSpent, setRolloverSpent] = useState(0);
   const [redeemed, setRedeemed] = useState(0);
   const [paySource, setPaySource] = useState<PaySource>("cash");
-  const [ownerLine, setOwnerLine] = useState(pick(DIALOGUE.greeting));
+  const [ownerLine, setOwnerLine] = useState(() => pick(DIALOGUE.greeting));
   const [storeMood, setStoreMood] = useState(STORE_MOODS[0]);
   const [scratchQueue, setScratchQueue] = useState<Ticket[]>([]);
   const [scratchIndex, setScratchIndex] = useState(0);
@@ -932,13 +894,8 @@ export default function Home() {
   const [logs, setLogs] = useState<SessionLog[]>([]);
   const [stock, setStock] = useState<Record<string, PublicStock>>({});
   const [storeTypeIds, setStoreTypeIds] = useState<string[]>(FEATURED_TICKET_IDS);
-  const [priceFilter, setPriceFilter] = useState<"all" | 10 | 20 | 30 | 50>("all");
+  const [priceFilter, setPriceFilter] = useState<"all" | 5 | 10 | 20 | 30 | 50>("all");
   const [catalogQuery, setCatalogQuery] = useState("");
-  const [mallEventOptions, setMallEventOptions] = useState(() =>
-    shuffle([...MALL_EVENTS]).slice(0, 3),
-  );
-  const [storyScene, setStoryScene] = useState("只是路过，老板还不认识你。");
-  const [storyTurn, setStoryTurn] = useState(0);
   const openBooksRef = useRef<Record<string, Book[]>>({});
   const sealedBooksRef = useRef<Record<string, number>>({});
 
@@ -1112,7 +1069,6 @@ export default function Home() {
         return;
       }
       charge(total);
-      if (playStyle === "story") setStoryTurn((value) => value + 1);
       addLog(`${sealedBook ? "整本" : `${count}张`} · ${type.name}`, -total, "spend");
       setOwnerLine(
         sealedBook
@@ -1131,7 +1087,6 @@ export default function Home() {
       canPay,
       charge,
       paySource,
-      playStyle,
       stock,
       syncStock,
       takeFromOpenBooks,
@@ -1203,7 +1158,6 @@ export default function Home() {
     const total = verifiedTickets.reduce((sum, ticket) => sum + ticket.prize, 0);
     setLastVerified(verifiedTickets);
     setValidationQueue([]);
-    if (playStyle === "story") setStoryTurn((value) => value + 1);
     if (total > 0) {
       setPrizeBalance((value) => value + total);
       verifiedTickets.forEach((ticket) => {
@@ -1227,7 +1181,7 @@ export default function Home() {
       });
       setOwnerLine(pick(DIALOGUE.noPrize));
     }
-  }, [addLog, playStyle, validationQueue]);
+  }, [addLog, validationQueue]);
 
   const redeemAll = useCallback(() => {
     if (prizeBalance <= 0) return;
@@ -1251,11 +1205,17 @@ export default function Home() {
   }, [scratchIndex, scratchQueue.length]);
 
   const startSession = useCallback(() => {
-    if (!isAdult || budgetInput < 5) return;
+    if (
+      !isAdult ||
+      !Number.isSafeInteger(budgetInput) ||
+      budgetInput < 5 ||
+      budgetInput > 10_000 ||
+      budgetInput % 5 !== 0
+    ) return;
     setInitialBudget(budgetInput);
     setWallet(budgetInput);
     setStoreMood(pick(STORE_MOODS));
-    const balanced = [10, 20, 30, 50]
+    const balanced = [5, 10, 20, 30, 50]
       .map((price) => pick(TICKET_TYPES.filter((type) => type.price === price)))
       .filter(Boolean);
     const chosenTypes = [
@@ -1299,12 +1259,9 @@ export default function Home() {
       });
     }
     syncStock();
-    setMallEventOptions(shuffle([...MALL_EVENTS]).slice(0, 3));
-    setStoryTurn(0);
-    setStoryScene("你在商场负一层多逛了一会儿，又绕回彩票柜台。");
     setOwnerLine(`${pick(DIALOGUE.greeting)} 你今天就按${formatMoney(budgetInput)}封顶。`);
-    setPhase(playStyle === "story" ? "wandering" : "shop");
-  }, [budgetInput, isAdult, playStyle, syncStock]);
+    setPhase("shop");
+  }, [budgetInput, isAdult, syncStock]);
 
   const resetGame = useCallback(() => {
     openBooksRef.current = {};
@@ -1327,19 +1284,21 @@ export default function Home() {
     setLastVerified([]);
     setLogs([]);
     setStock({});
-    setPlayStyle("story");
     setStoreTypeIds(FEATURED_TICKET_IDS);
     setPriceFilter("all");
     setCatalogQuery("");
-    setMallEventOptions(shuffle([...MALL_EVENTS]).slice(0, 3));
-    setStoryScene("只是路过，老板还不认识你。");
-    setStoryTurn(0);
+    setBudgetPrompt(pick(BUDGET_PROMPTS));
     setOwnerLine(pick(DIALOGUE.greeting));
   }, []);
 
   const sessionNet = wallet + prizeBalance - initialBudget;
   const totalStake = cashSpent + rolloverSpent;
   const validationTotal = lastVerified.reduce((sum, ticket) => sum + ticket.prize, 0);
+  const budgetIsValid =
+    Number.isSafeInteger(budgetInput) &&
+    budgetInput >= 5 &&
+    budgetInput <= 10_000 &&
+    budgetInput % 5 === 0;
   const requestedBookType =
     TICKET_TYPES.find((type) => type.id === bookRequestId) ?? TICKET_TYPES[0];
   const requestedBookStock = stock[requestedBookType.id];
@@ -1363,32 +1322,12 @@ export default function Home() {
           <div className="owner owner-large"><i /></div>
           <div className="speech speech-budget">
             <small>老板</small>
-            <p>{pick(["先问一句：成年了吗？今天准备拿多少玩？", "身份证不用掏，先确认你满18了。预算打算定多少？"])}</p>
+            <p>{budgetPrompt}</p>
           </div>
           <div className="budget-content">
             <span className="eyebrow">进店先定上限</span>
             <h1>今天最多花多少？</h1>
             <p>只使用这笔模拟现金。花完不会自动充值，中奖也要先验票才能使用。</p>
-            <div className="play-style-picker">
-              <button
-                className={playStyle === "story" ? "selected" : ""}
-                onClick={() => setPlayStyle("story")}
-              >
-                <b>逛街剧情模式</b>
-                <span>先在商场走一段，再进店；本地对白，0 Token</span>
-              </button>
-              <button
-                className={playStyle === "quick" ? "selected" : ""}
-                onClick={() => setPlayStyle("quick")}
-              >
-                <b>快速进店</b>
-                <span>跳过额外剧情，直接选票刮奖</span>
-              </button>
-              <button className="llm-disabled" disabled>
-                <b>大模型闲聊 · 暂不接入</b>
-                <span>估算每局约 0.8–2 万输入 Token，还需要安全后端</span>
-              </button>
-            </div>
             <div className="budget-presets">
               {[50, 100, 300, 600].map((value) => (
                 <button
@@ -1411,7 +1350,11 @@ export default function Home() {
                   step={5}
                   type="number"
                   value={budgetInput}
-                  onChange={(event) => setBudgetInput(Number(event.target.value))}
+                  aria-invalid={!budgetIsValid}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    setBudgetInput(Number.isFinite(value) ? value : 0);
+                  }}
                 />
               </span>
             </label>
@@ -1425,55 +1368,13 @@ export default function Home() {
             </label>
             <button
               className="primary-action full"
-              disabled={!isAdult || budgetInput < 5}
+              disabled={!isAdult || !budgetIsValid}
               onClick={startSession}
             >
-              就用 {formatMoney(budgetInput)} <span>→</span>
+              {budgetIsValid ? `就用 ${formatMoney(budgetInput)}` : "请输入 5—10000 元的 5 元倍数"} <span>→</span>
             </button>
             <button className="text-action" onClick={() => setPhase("mall")}>先不玩，回商场</button>
           </div>
-        </section>
-      </main>
-    );
-  }
-
-  if (phase === "wandering") {
-    return (
-      <main className={`wandering-screen ui-${UI_VARIANT}`} data-ui={UI_VARIANT}>
-        <section className="wandering-card">
-          <header>
-            <span className="eyebrow">逛街剧情模式 · 本地运行 · 0 Token</span>
-            <h1>还没急着进店。<br />你在负一层又走了一圈。</h1>
-            <p>选择一段刚刚发生的小事。它只影响进店情境和老板对白，不会改变任何彩票结果。</p>
-          </header>
-          <div className="mall-event-list">
-            {mallEventOptions.map((event) => (
-              <button
-                key={event.id}
-                onClick={() => {
-                  setStoryScene(event.scene);
-                  setStoryTurn(1);
-                  setOwnerLine(`${event.ownerLead} ${pick(DIALOGUE.greeting)}`);
-                  setStoreMood(`${event.time} · ${event.scene}`);
-                  setPhase("shop");
-                }}
-              >
-                <span>{event.time}</span>
-                <b>{event.title}</b>
-                <small>{event.scene}</small>
-              </button>
-            ))}
-          </div>
-          <button
-            className="text-action"
-            onClick={() => {
-              setStoryScene("你没有继续闲逛，直接推开了彩票店的玻璃门。");
-              setOwnerLine(`${pick(DIALOGUE.greeting)} 先定预算，别临时加。`);
-              setPhase("shop");
-            }}
-          >
-            改主意了，直接进店
-          </button>
         </section>
       </main>
     );
@@ -1529,7 +1430,7 @@ export default function Home() {
                   <i style={{ width: `${scratchPercent}%` }} />
                 </div>
                 <p>
-                  按住{scratchTool.name}来回移动。还要刮开 {Math.max(0, 72 - scratchPercent)}%
+                  按住{scratchTool.name}来回移动。还要刮开 {Math.max(0, SCRATCH_COMPLETION_PERCENT - scratchPercent)}%
                   才能送去验票；票面不会替你圈出中奖位置。
                 </p>
               </>
@@ -1653,9 +1554,6 @@ export default function Home() {
         <div>
           <span className="eyebrow">{storeMood}</span>
           <h1>柜台今天不是满货。</h1>
-          {playStyle === "story" && (
-            <div className="story-status">本地剧情 · 0 Token · 情境第 {storyTurn} 段</div>
-          )}
         </div>
         <div className="session-stats">
           {stats.map((stat) => (
@@ -1677,13 +1575,6 @@ export default function Home() {
               <p>{ownerLine}</p>
             </div>
           </div>
-          {playStyle === "story" && (
-            <div className="story-memory">
-              <b>刚才在商场</b>
-              <p>{storyScene}</p>
-              <small>这段记忆只用于选择对白，不参与出票和验奖。</small>
-            </div>
-          )}
           <div className="pay-panel">
             <span>这次用什么付款？</span>
             <div>
@@ -1762,7 +1653,7 @@ export default function Home() {
               />
             </label>
             <div aria-label="按面值筛选">
-              {(["all", 10, 20, 30, 50] as const).map((price) => (
+              {(["all", 5, 10, 20, 30, 50] as const).map((price) => (
                 <button
                   className={priceFilter === price ? "active" : ""}
                   key={price}

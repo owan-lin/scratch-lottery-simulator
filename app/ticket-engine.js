@@ -592,14 +592,19 @@ function evaluateMatch(type, winningNumbers, cells) {
 
 function evaluateSymbols(type, cells) {
   const rules = new Map(symbolRules(type).map((rule) => [rule.label, rule]));
-  return cells.reduce((sum, cell) => {
+  let awardsAll = false;
+  const ordinaryPrize = cells.reduce((sum, cell) => {
     const rule = rules.get(cell.label);
     if (!rule) return sum;
     if (rule.award === "all") {
-      return sum + cells.reduce((total, item) => total + item.amount, 0);
+      awardsAll = true;
+      return sum;
     }
     return sum + cell.amount * rule.multiplier;
   }, 0);
+  return awardsAll
+    ? ordinaryPrize + cells.reduce((total, item) => total + item.amount, 0)
+    : ordinaryPrize;
 }
 
 function evaluateCombo(type, winningNumbers, cells) {
@@ -700,6 +705,9 @@ export function evaluateVisiblePrize(type, winningNumbers, cells) {
 }
 
 export function makeTicketOutcome(type, intendedPrize, random = Math.random) {
+  if (!Number.isSafeInteger(intendedPrize) || intendedPrize < 0) {
+    throw new TypeError(`${type.name} (${type.id}) prize must be a non-negative integer`);
+  }
   const winningNumbers = makeWinningNumbers(type, random);
   let cells;
   if (type.mode === "direct") cells = makeDirectCells(type, intendedPrize, random);
@@ -716,6 +724,18 @@ export function makeTicketOutcome(type, intendedPrize, random = Math.random) {
   else if (type.mode === "path") cells = makePathCells(type, intendedPrize, random);
   else throw new Error(`Unsupported play mode: ${type.mode}`);
 
+  if (
+    cells.length === 0 ||
+    cells.some(
+      (cell) =>
+        !cell ||
+        typeof cell.label !== "string" ||
+        !Number.isSafeInteger(cell.amount) ||
+        cell.amount < 0,
+    )
+  ) {
+    throw new Error(`${type.name} (${type.id}) generated an invalid printed ticket face`);
+  }
   const visiblePrize = evaluateVisiblePrize(type, winningNumbers, cells);
   if (visiblePrize !== intendedPrize) {
     throw new Error(

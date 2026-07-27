@@ -1,0 +1,403 @@
+<view wx:if="{{phase === 'mall'}}" class="screen mall">
+  <view class="mall-sign">B1 · 生活广场</view>
+  <view class="ceiling-line"></view>
+  <view class="passer passer-a"></view>
+  <view class="passer passer-b"></view>
+  <view class="kiosk">
+    <view class="kiosk-light">幸运彩票站</view>
+    <view class="kiosk-window">
+      <view class="ticket-wall">
+        <text>好运十倍</text>
+        <text>喜相逢</text>
+        <text>66顺88发</text>
+        <text>连中三元</text>
+      </view>
+      <view class="owner-mini"><view></view></view>
+    </view>
+    <view class="kiosk-counter">理性购彩 · 未成年人不得购彩</view>
+  </view>
+  <view class="mall-copy">
+    <text class="eyebrow">周六 · 17:42 · 商场负一层</text>
+    <view class="mall-title"><view>逛着逛着，</view><view>又看见彩票店了。</view></view>
+    <text class="mall-description">柜台玻璃上有细小的刮屑。架上的票并不齐，有几格已经空了。</text>
+    <button class="primary" bindtap="enterShop">进去看看 <text>→</text></button>
+    <text class="disclaimer">非官方彩票产品 · 不使用真钱 · 仅模拟线下即开票体验</text>
+  </view>
+</view>
+
+<view wx:elif="{{phase === 'budget'}}" class="screen budget-screen">
+  <view class="budget-owner">
+    <view class="owner-avatar"><view></view></view>
+    <view class="speech">
+      <text>老板</text>
+      <view>{{ownerLine}}</view>
+    </view>
+  </view>
+  <view class="budget-sheet">
+    <text class="eyebrow">进店先定上限</text>
+    <view class="page-title">今天最多花多少？</view>
+    <text class="lead">只使用这笔模拟现金。花完不会自动充值，中奖也要先验票才能使用。</text>
+    <view class="budget-presets">
+      <button
+        wx:for="{{[50, 100, 300, 600]}}"
+        wx:key="*this"
+        class="{{budget === item ? 'selected' : ''}}"
+        data-value="{{item}}"
+        bindtap="setBudgetPreset"
+      >
+        ¥{{item}}
+      </button>
+    </view>
+    <view class="budget-input {{budgetValid ? '' : 'invalid'}}">
+      <view>
+        <text>自定预算</text>
+        <text>5—10000 元，且必须是 5 元的倍数</text>
+      </view>
+      <view>¥ <input type="number" value="{{budget}}" bindinput="onBudgetInput" /></view>
+    </view>
+    <view class="adult-row">
+      <switch color="#b72825" checked="{{adult}}" bindchange="onAdultChange" />
+      <text>我已年满18周岁，并理解这里没有真钱和真实兑奖</text>
+    </view>
+    <button
+      class="primary full"
+      disabled="{{!adult || !budgetValid}}"
+      bindtap="startSession"
+    >
+      {{budgetValid ? '就用 ¥' + budget : '请输入有效预算'}} <text>→</text>
+    </button>
+    <button class="text-button" bindtap="backToMall">先不玩，回商场</button>
+  </view>
+</view>
+
+<view wx:elif="{{phase === 'shop'}}" class="screen shop-screen">
+  <view class="shop-hero">
+    <text class="eyebrow">{{storeMood}}</text>
+    <view class="page-title light">柜台今天不是满货。</view>
+    <view class="wallet-strip">
+      <view><text>模拟现金</text><text class="strong">¥{{wallet}}</text></view>
+      <view><text>已验未兑</text><text class="strong">¥{{prizeBalance}}</text></view>
+      <view><text>总票库</text><text class="strong">{{catalogSize}} 款</text></view>
+    </view>
+  </view>
+
+  <view class="owner-panel">
+    <view class="owner-avatar"><view></view></view>
+    <view class="speech">
+      <text>老板</text>
+      <view>{{ownerLine}}</view>
+    </view>
+  </view>
+
+  <view class="pay-panel">
+    <text class="section-label">这次用什么付款？</text>
+    <view class="pay-buttons">
+      <button
+        class="{{paySource === 'cash' ? 'active' : ''}}"
+        data-source="cash"
+        bindtap="setPaySource"
+      >现金 ¥{{wallet}}</button>
+      <button
+        class="{{paySource === 'prize' ? 'active' : ''}}"
+        data-source="prize"
+        disabled="{{prizeBalance <= 0}}"
+        bindtap="setPaySource"
+      >奖金换票 ¥{{prizeBalance}}</button>
+    </view>
+    <button wx:if="{{prizeBalance > 0}}" class="redeem-link" bindtap="redeemAll">
+      不换票，直接兑奖收钱
+    </button>
+  </view>
+
+  <view class="book-panel">
+    <view>
+      <text class="section-label">密封整本</text>
+      <text>整本不会摆在单张货架，要单独问老板。</text>
+    </view>
+    <picker range="{{bookOptions}}" range-key="label" bindchange="onBookRequestChange">
+      <view class="picker-value">
+        {{bookRequestId ? '选择整本票种' : '今天没有可选票种'}} <text>⌄</text>
+      </view>
+    </picker>
+    <button class="secondary full" bindtap="buyWholeBook">问老板拿选中的一整本</button>
+  </view>
+
+  <view class="catalog">
+    <view class="catalog-head">
+      <view>
+        <text class="section-label">玻璃柜里能看到的票</text>
+        <text>同款可能同时拆着几个开本；看不见每本的精确余量。</text>
+      </view>
+      <text>今日上架 {{storeCards.length}} 款</text>
+    </view>
+    <view class="catalog-controls">
+      <input placeholder="找票名或玩法" value="{{searchQuery}}" bindinput="onSearchInput" />
+      <scroll-view scroll-x class="price-scroll">
+        <view class="price-row">
+          <button
+            wx:for="{{['all', '5', '10', '20', '30', '50']}}"
+            wx:key="*this"
+            class="{{priceFilter === item ? 'active' : ''}}"
+            data-price="{{item}}"
+            bindtap="setPriceFilter"
+          >{{item === 'all' ? '全部' : item + '元'}}</button>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view wx:if="{{visibleCards.length === 0}}" class="empty-state">今天柜台没有符合筛选的票。</view>
+
+    <view
+      wx:for="{{visibleCards}}"
+      wx:key="id"
+      wx:for-item="card"
+      class="product-card stock-{{card.stockTone}}"
+    >
+      <view
+        class="ticket-cover"
+        style="background: linear-gradient(145deg, {{card.color}}, {{card.accent}}); color: {{card.ink}};"
+      >
+        <text>{{card.issuer}}</text>
+        <view>{{card.name}}</view>
+        <text>{{card.subtitle}}</text>
+        <view class="cover-motifs">
+          <view
+            wx:for="{{card.motifs}}"
+            wx:key="id"
+            wx:for-item="motif"
+            class="motif"
+          >
+            <view wx:if="{{motif.glyph}}" class="sprite {{motif.glyph}}"></view>
+            <text wx:else>{{motif.label}}</text>
+          </view>
+        </view>
+        <text class="strong">{{card.priceText}}</text>
+        <text>最高 {{card.topPrizeText}}</text>
+      </view>
+      <view class="product-body">
+        <view class="stock-badge {{card.stockTone}}">{{card.stockLabel}}</view>
+        <text class="mechanic">{{card.mechanic}}</text>
+        <text class="meta">{{card.opportunities}}次机会 · {{card.playFamily}}</text>
+        <view class="pick-section">
+          <text>自己从露出的单张里挑</text>
+          <view class="pick-buttons">
+            <button
+              wx:for="{{card.visibleBookIds}}"
+              wx:key="id"
+              wx:for-item="book"
+              data-type-id="{{card.id}}"
+              data-book-id="{{book.id}}"
+              bindtap="buyLoose"
+            >{{book.label}}<text>1张</text></button>
+          </view>
+        </view>
+        <view class="owner-picks">
+          <button
+            wx:for="{{[1, 3, 5]}}"
+            wx:key="*this"
+            disabled="{{!card.canSell}}"
+            data-type-id="{{card.id}}"
+            data-count="{{item}}"
+            bindtap="buyOwnerPick"
+          >老板拿{{item}}张<text>{{card.price * item}}元</text></button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="shop-footer">
+    <button class="leave" bindtap="leaveShop">收手，离开彩票店</button>
+    <text>所有金额均为虚拟数值，不连接真实购买、支付或兑奖服务。</text>
+  </view>
+  <view class="safe-bottom"></view>
+</view>
+
+<view wx:elif="{{phase === 'scratch'}}" class="screen scratch-screen">
+  <view class="scratch-top">
+    <text>{{scratchIndexText}}</text>
+    <view class="progress"><view style="width: {{scratchPercent}}%;"></view></view>
+    <text>待验票 {{validationQueueCount}} 张</text>
+  </view>
+  <view class="scratch-owner">
+    <view class="owner-avatar small"><view></view></view>
+    <view class="speech"><text>老板</text><view>{{ownerLine}}</view></view>
+  </view>
+
+  <view
+    class="ticket-face ticket-{{activeTicket.mode}}"
+    style="background: linear-gradient(145deg, {{activeTicket.color}}, {{activeTicket.accent}}); color: {{activeTicket.ink}};"
+  >
+    <text class="watermark">仿真练习票 · 无兑奖价值</text>
+    <view class="ticket-head">
+      <view>
+        <text>{{activeTicket.issuer}} · 原型仿真</text>
+        <view>{{activeTicket.name}}</view>
+        <text>{{activeTicket.subtitle}}</text>
+      </view>
+      <text class="strong">{{activeTicket.priceText}}</text>
+    </view>
+    <view class="ticket-rule"><text class="strong">玩法</text> {{activeTicket.mechanic}}</view>
+    <view class="scratch-zone">
+      <view class="ticket-content">
+        <view wx:if="{{activeTicket.showWinningNumbers}}" class="winning-row">
+          <text>中奖号码</text>
+          <text class="strong" wx:for="{{activeTicket.winningNumbers}}" wx:key="*this">{{item}}</text>
+        </view>
+
+        <view wx:if="{{activeTicket.isCombo}}" class="combo-groups">
+          <view
+            wx:for="{{activeTicket.groups}}"
+            wx:key="id"
+            wx:for-item="group"
+            class="combo-group"
+          >
+            <text class="combo-title">玩法 · {{group.title}}</text>
+            <view wx:if="{{group.showWinningNumbers}}" class="mini-winning">
+              <text>中奖号码</text>
+              <text class="strong" wx:for="{{activeTicket.winningNumbers}}" wx:key="*this">{{item}}</text>
+            </view>
+            <view class="cells">
+              <view wx:for="{{group.cells}}" wx:key="id" wx:for-item="cell" class="ticket-cell">
+                <view wx:if="{{cell.parts.length}}" class="symbol-run">
+                  <view wx:for="{{cell.parts}}" wx:key="id" wx:for-item="part" class="symbol-part">
+                    <view wx:if="{{part.glyph && !part.text}}" class="sprite {{part.glyph}}"></view>
+                    <text wx:else>{{part.label}}</text>
+                  </view>
+                </view>
+                <text class="strong" wx:if="{{cell.amountText}}">{{cell.amountText}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:else class="cells main-cells">
+          <view
+            wx:for="{{activeTicket.normalCells}}"
+            wx:key="id"
+            wx:for-item="cell"
+            class="ticket-cell"
+          >
+            <view wx:if="{{cell.parts.length && activeTicket.mode !== 'direct'}}" class="symbol-run">
+              <view wx:for="{{cell.parts}}" wx:key="id" wx:for-item="part" class="symbol-part">
+                <view wx:if="{{part.glyph && !part.text}}" class="sprite {{part.glyph}}"></view>
+                <text wx:else>{{part.label}}</text>
+              </view>
+            </view>
+            <text class="strong" wx:if="{{cell.amountText}}">{{cell.amountText}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{activeTicket.luckyCell}}" class="lucky-cell">
+          <text>幸运玩法</text>
+          <text class="strong">{{activeTicket.luckyCell.amountText}}</text>
+        </view>
+      </view>
+      <canvas
+        type="2d"
+        id="scratch-canvas"
+        class="scratch-canvas"
+        bindtouchstart="onScratchStart"
+        catchtouchmove="onScratchMove"
+        bindtouchend="onScratchEnd"
+        bindtouchcancel="onScratchEnd"
+      ></canvas>
+    </view>
+    <view class="ticket-foot">
+      <text>保安区刮开无效　▦ {{activeTicket.validationCode}}</text>
+      <text>{{activeTicket.serialText}}</text>
+    </view>
+  </view>
+
+  <view class="toolbox">
+    <text class="section-label">桌上的工具</text>
+    <view>
+      <button
+        wx:for="{{scratchTools}}"
+        wx:key="id"
+        class="{{scratchToolId === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="selectScratchTool"
+      >
+        <text class="strong">{{item.mark}}</text>
+        <text>{{item.name}}</text>
+        <text>{{item.detail}}</text>
+      </button>
+    </view>
+    <view wx:if="{{!scratchReady}}" class="scratch-hint">
+      按住{{scratchToolName}}来回移动。已刮开 {{scratchPercent}}%，达到80%后才能验票。
+    </view>
+    <view wx:else class="scratch-ready">
+      <text>玩法区已基本露出 · 结果尚未核验</text>
+      <button
+        data-action="next"
+        bindtap="finishCurrentScratch"
+      >放旁边，刮下一张</button>
+      <button
+        class="primary"
+        data-action="validate"
+        bindtap="finishCurrentScratch"
+      >拿给老板验票 →</button>
+    </view>
+  </view>
+  <view class="safe-bottom"></view>
+</view>
+
+<view wx:elif="{{phase === 'validation'}}" class="screen validation-screen">
+  <view class="scanner">
+    <view></view>
+    <text>即开票验奖终端</text>
+    <text class="strong">{{validationHasResult ? '核验完成' : '等待扫描'}}</text>
+  </view>
+  <view class="validation-owner">
+    <view class="owner-avatar"><view></view></view>
+    <view class="speech"><text>老板</text><view>{{ownerLine}}</view></view>
+  </view>
+  <view wx:if="{{!validationHasResult}}" class="validation-card">
+    <text class="eyebrow">{{validationQueueCount}} 张票放在柜台上</text>
+    <view class="page-title"><view>自己看出来的不算，</view><view>机器验过才结算。</view></view>
+    <text class="lead">老板会刮开保安区并扫描验奖码。模拟器到这一步才按票面重新计算奖金。</text>
+    <button class="primary full" bindtap="validateAtCounter">请老板逐张验票 ▦</button>
+  </view>
+  <view wx:else class="validation-card result">
+    <text class="eyebrow">机器核验结果</text>
+    <view class="page-title">
+      {{validationTotal > 0 ? '共中 ' + validationTotalText : '这批没有中奖'}}
+    </view>
+    <view class="verified-list">
+      <view wx:for="{{verifiedTickets}}" wx:key="id">
+        <text>{{item.name}} · {{item.serial}}</text>
+        <text class="strong">{{item.prizeText}}</text>
+      </view>
+    </view>
+    <button wx:if="{{prizeBalance > 0}}" class="secondary full" bindtap="redeemAll">
+      兑成模拟现金
+    </button>
+    <button class="primary full" bindtap="returnFromValidation">
+      回桌继续 / 回柜台选票 →
+    </button>
+  </view>
+</view>
+
+<view wx:elif="{{phase === 'summary'}}" class="screen summary-screen">
+  <view class="receipt">
+    <view class="receipt-head"><text>幸运彩票站 · 模拟小票</text><text class="strong">本次体验结束</text></view>
+    <text class="eyebrow">离店结算</text>
+    <view class="page-title">{{summary.positive ? '今天手气不错。' : '今天就到这里。'}}</view>
+    <view class="receipt-grid">
+      <view><text>初始预算</text><text class="strong">{{summary.budgetText}}</text></view>
+      <view><text>累计票面</text><text class="strong">{{summary.stakeText}}</text></view>
+      <view><text>模拟现金</text><text class="strong">{{summary.walletText}}</text></view>
+      <view><text>已验未兑</text><text class="strong">{{summary.pendingText}}</text></view>
+      <view class="wide"><text>本次盈亏</text><text class="strong">{{summary.netText}}</text></view>
+    </view>
+    <view class="receipt-note">
+      <text class="strong">老板说</text>
+      <text>{{summary.positive ? '有赚就收挺好。下次逛到再来。' : '彩票就是消遣，没中也别追。商场还没逛完。'}}</text>
+    </view>
+    <button wx:if="{{prizeBalance > 0}}" class="secondary full" bindtap="redeemAll">
+      把奖金收进钱包
+    </button>
+    <button class="primary full" bindtap="resetGame">重新逛一次 ↻</button>
+    <text class="disclaimer">非官方产品 · 不涉及真实资金 · 票面仅作玩法仿真</text>
+  </view>
+</view>

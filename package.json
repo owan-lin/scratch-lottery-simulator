@@ -9,8 +9,10 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run build && node --test",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+    "test": "npm run build && node --test --test-isolation=none",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern miniprogram/shared",
+    "sync:miniprogram": "node scripts/sync-miniprogram-core.mjs",
+    "check:miniprogram": "node scripts/sync-miniprogram-core.mjs --check && node --test --test-isolation=none tests/miniprogram.test.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

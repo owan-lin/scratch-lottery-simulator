@@ -1,0 +1,22 @@
+{
+  "description": "幸运彩票站 · 原生微信小程序适配版",
+  "packOptions": {
+    "ignore": []
+  },
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "compileHotReLoad": true,
+    "useStaticServer": true,
+    "ignoreUploadUnusedFiles": true
+  },
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "scratch-lottery-simulator",
+  "miniprogramRoot": "./",
+  "simulatorType": "wechat",
+  "condition": {}
+}

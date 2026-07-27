@@ -64,6 +64,21 @@ npm run lint
 npm test
 ```
 
+## 微信小程序版
+
+仓库内已包含原生微信小程序适配版，目录为 [`miniprogram/`](miniprogram/)；它不是网页 WebView，也不需要 ChatGPT 登录。当前小程序版本为 `0.1.0-mp`，具备进店、预算、选票、整本、逐步刮膜、柜台验奖和奖金换票的完整闭环。
+
+修改主票库或验奖规则后先同步：
+
+```bash
+npm run sync:miniprogram
+npm run check:miniprogram
+```
+
+然后在微信开发者工具里导入 `miniprogram/`。仓库默认使用 `touristappid` 方便本地查看；上传体验版或正式发布前，需要替换为你自己的小程序 AppID。
+
+完整迁移阶段、真机测试清单和发布风险见 [`docs/WECHAT_MINIPROGRAM_PLAN.md`](docs/WECHAT_MINIPROGRAM_PLAN.md)。
+
 ## 真实性边界
 
 - 票价、公开玩法、最高奖、奖级数量、票面结构和未成年人限制优先采用官方资料。

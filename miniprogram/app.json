@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/game/game"
+  ],
+  "window": {
+    "navigationBarTitleText": "幸运彩票站",
+    "navigationBarBackgroundColor": "#17382d",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#efe6d4",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

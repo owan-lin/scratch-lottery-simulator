@@ -37,10 +37,9 @@ app/ticket-engine.js  ─┘                │
 
 ## 第二阶段：开发者工具真机调优
 
-需要用户提供一个可用的小程序 AppID，完成以下工作：
+项目已配置小程序 AppID `wx6ea3bd67ad8d311a`，接下来完成以下工作：
 
-1. 把 `miniprogram/project.config.json` 的 `touristappid` 换成真实 AppID。
-2. 用最新版微信开发者工具导入 `miniprogram/`。
+1. 用最新版微信开发者工具导入 `miniprogram/`。
 3. 在 iPhone、主流安卓机各测试至少一轮：
    - Canvas 首次初始化、横向移动、连续刮 20 张；
    - 刘海屏与底部安全区；
@@ -103,7 +102,7 @@ npm test
 1. 安装并打开微信开发者工具。
 2. 选择“导入项目”。
 3. 目录选本仓库的 `miniprogram/`。
-4. 没有 AppID 时可先使用测试号/游客模式；有 AppID 时替换 `project.config.json`。
+4. 确认开发者工具显示 AppID `wx6ea3bd67ad8d311a`。
 5. 编译后会直接进入商场彩票店场景。
 
 正式预览码、体验版和提交审核必须使用用户自己的微信小程序账号与 AppID；代码仓库无法代替这一步。

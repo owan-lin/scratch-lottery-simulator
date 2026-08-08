@@ -75,7 +75,7 @@ npm run sync:miniprogram
 npm run check:miniprogram
 ```
 
-然后在微信开发者工具里导入 `miniprogram/`。仓库默认使用 `touristappid` 方便本地查看；上传体验版或正式发布前，需要替换为你自己的小程序 AppID。
+然后在微信开发者工具里导入 `miniprogram/`。项目已配置小程序 AppID `wx6ea3bd67ad8d311a`；上传体验版或正式发布时需要使用该小程序的开发者身份。
 
 完整迁移阶段、真机测试清单和发布风险见 [`docs/WECHAT_MINIPROGRAM_PLAN.md`](docs/WECHAT_MINIPROGRAM_PLAN.md)。
 

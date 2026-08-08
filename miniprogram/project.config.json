@@ -14,7 +14,7 @@
     "ignoreUploadUnusedFiles": true
   },
   "compileType": "miniprogram",
-  "appid": "touristappid",
+  "appid": "wx6ea3bd67ad8d311a",
   "projectname": "scratch-lottery-simulator",
   "miniprogramRoot": "./",
   "simulatorType": "wechat",

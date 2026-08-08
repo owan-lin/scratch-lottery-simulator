@@ -13,6 +13,7 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern miniprogram/shared",
     "sync:miniprogram": "node scripts/sync-miniprogram-core.mjs",
     "check:miniprogram": "node scripts/sync-miniprogram-core.mjs --check && node --test --test-isolation=none tests/miniprogram.test.mjs",
+    "preview:miniprogram": "node scripts/preview-miniprogram.mjs",
     "upload:miniprogram": "node scripts/upload-miniprogram.mjs"
   },
   "dependencies": {

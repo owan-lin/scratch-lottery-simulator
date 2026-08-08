@@ -29,7 +29,11 @@ const {
   makeBookPrizePool: makeMiniBookPrizePool,
   makeSeededRandom: makeMiniSeededRandom,
 } = require("../miniprogram/shared/prize-model.js");
-const { decoratePart, isPrintedMark } = require("../miniprogram/symbol-map.js");
+const {
+  SYMBOL_GLYPHS,
+  decoratePart,
+  isPrintedMark,
+} = require("../miniprogram/symbol-map.js");
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -133,6 +137,7 @@ test("every catalog pictogram has a visual glyph and unknown symbols never degra
       decorated.sheet === "sprite-v1" || decorated.sheet === "sprite-v2",
       `${symbol} has an invalid sprite sheet`,
     );
+    assert.match(decorated.spriteSrc, /^\/assets\/ticket-symbols-v[12]\.png$/);
     assert.equal(decorated.text, false, `${symbol} unexpectedly degraded to text`);
   }
 
@@ -163,6 +168,7 @@ test("mini-program project is importable and validates at the static boundary", 
     pageSource,
     template,
     pageStyle,
+    appStyle,
     sourceSpriteV2,
     miniSpriteV2,
     vectorSpriteV2,
@@ -173,6 +179,7 @@ test("mini-program project is importable and validates at the static boundary", 
     readFile(path.join(root, "miniprogram", "pages", "game", "game.js"), "utf8"),
     readFile(path.join(root, "miniprogram", "pages", "game", "game.wxml"), "utf8"),
     readFile(path.join(root, "miniprogram", "pages", "game", "game.wxss"), "utf8"),
+    readFile(path.join(root, "miniprogram", "app.wxss"), "utf8"),
     readFile(path.join(root, "public", "assets", "ticket-symbols-v2.png")),
     readFile(path.join(root, "miniprogram", "assets", "ticket-symbols-v2.png")),
     readFile(path.join(root, "public", "assets", "ticket-symbols-v2.svg"), "utf8"),
@@ -187,12 +194,25 @@ test("mini-program project is importable and validates at the static boundary", 
   assert.match(template, /catchtouchmove="onScratchMove"/);
   assert.match(template, /拿给老板验票/);
   assert.match(template, /灰|ticket-content/);
-  assert.match(template, /sprite \{\{part\.sheet\}\} \{\{part\.glyph\}\}/);
+  assert.match(template, /<image[\s\S]*?sprite-sheet \{\{part\.sheet\}\} \{\{part\.glyph\}\}/);
+  assert.match(template, /src="\{\{part\.spriteSrc\}\}"/);
   assert.match(pageStyle, /repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(pageStyle, /\.toolbox[\s\S]*?button[\s\S]*?min-width:\s*0/);
-  assert.match(pageStyle, /ticket-symbols-v2\.png/);
+  assert.doesNotMatch(
+    pageStyle,
+    /background-image:\s*url\(["']?\/assets\/ticket-symbols/,
+    "local mini-program pictograms must render through <image>, not WXSS background-image",
+  );
+  assert.match(appStyle, /overflow-x:\s*hidden/);
+  assert.match(appStyle, /view,[\s\S]*?box-sizing:\s*border-box/);
+  assert.match(pageStyle, /@media \(max-width:\s*390px\)/);
+  assert.match(pageStyle, /\.budget-input[\s\S]*?flex-direction:\s*column/);
   assert.match(vectorSpriteV2, /viewBox="0 0 500 500"/);
   assert.deepEqual(miniSpriteV2, sourceSpriteV2);
+
+  for (const glyph of new Set(Object.values(SYMBOL_GLYPHS))) {
+    assert.match(pageStyle, new RegExp(`\\.${glyph}\\s*\\{`), `${glyph} has no crop rule`);
+  }
 
   const allowedTags = new Set([
     "view",
@@ -203,6 +223,7 @@ test("mini-program project is importable and validates at the static boundary", 
     "scroll-view",
     "picker",
     "canvas",
+    "image",
   ]);
   const usedTags = [...template.matchAll(/<([a-z][a-z0-9-]*)\b/g)].map((match) => match[1]);
   assert.deepEqual(

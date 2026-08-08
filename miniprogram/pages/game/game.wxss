@@ -30,7 +30,8 @@
 .kiosk {
   position: relative;
   margin: 88rpx auto 54rpx;
-  width: 660rpx;
+  width: 100%;
+  max-width: 660rpx;
   border: 12rpx solid #2b493c;
   border-radius: 18rpx 18rpx 10rpx 10rpx;
   background: #274438;
@@ -66,6 +67,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16rpx;
   width: 430rpx;
+  min-width: 0;
 }
 
 .ticket-wall text {
@@ -319,6 +321,10 @@
   font-weight: 800;
 }
 
+.budget-input > view:first-child {
+  min-width: 0;
+}
+
 .budget-input > view:first-child text:last-child {
   margin-top: 5rpx;
   color: #777166;
@@ -331,6 +337,7 @@
   align-items: center;
   font-size: 30rpx;
   font-weight: 900;
+  flex: 0 0 auto;
 }
 
 .budget-input input {
@@ -382,6 +389,7 @@
 }
 
 .wallet-strip view {
+  min-width: 0;
   padding: 18rpx 12rpx;
   border: 1rpx solid rgba(255,255,255,.14);
   border-radius: 10rpx;
@@ -401,6 +409,7 @@
 .wallet-strip .strong {
   margin-top: 7rpx;
   font-size: 27rpx;
+  overflow-wrap: anywhere;
 }
 
 .owner-panel {
@@ -441,6 +450,9 @@
 }
 
 .pay-buttons button {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
   min-height: 72rpx;
   border: 2rpx solid #d4c9b2;
   border-radius: 10rpx;
@@ -597,6 +609,8 @@
   font-family: "STKaiti", "KaiTi", serif;
   font-size: 52rpx;
   font-weight: 900;
+  padding-right: 145rpx;
+  overflow-wrap: anywhere;
 }
 
 .ticket-cover > text:nth-child(3) {
@@ -699,6 +713,9 @@
 
 .pick-buttons button,
 .owner-picks button {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
   min-height: 75rpx;
   padding: 9rpx;
   border: 2rpx solid #cfc4af;
@@ -835,6 +852,11 @@
 .speech,
 .catalog-head > view:first-child {
   min-width: 0;
+}
+
+.ticket-head > view:first-child {
+  padding-right: 8rpx;
+  overflow-wrap: anywhere;
 }
 
 .ticket-head > view > text:first-child {
@@ -1022,6 +1044,7 @@
 
 .ticket-foot {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 16rpx;
   margin-top: 15rpx;
@@ -1190,6 +1213,7 @@
 
 .verified-list view {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 15rpx;
   padding: 18rpx 2rpx;
@@ -1227,6 +1251,7 @@
 
 .receipt-head {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 20rpx;
   margin-bottom: 45rpx;
@@ -1290,77 +1315,175 @@
 }
 
 .sprite {
+  position: relative;
+  flex: 0 0 auto;
+  overflow: hidden;
   width: 42rpx;
   height: 42rpx;
-  background-repeat: no-repeat;
 }
 
-.sprite-v1 {
-  background-image: url("/assets/ticket-symbols-v1.png");
-  background-size: 500% 400%;
-  filter: grayscale(1) contrast(1.45) brightness(.45);
+.sprite-sheet {
+  position: absolute;
+  display: block;
+  max-width: none;
+  max-height: none;
 }
 
-.sprite-v2 {
-  background-image: url("/assets/ticket-symbols-v2.png");
-  background-size: 500% 500%;
+.sprite-sheet.sprite-v1 {
+  width: 500%;
+  height: 400%;
+}
+
+.sprite-sheet.sprite-v2 {
+  width: 500%;
+  height: 500%;
 }
 
 .cover-motifs .sprite {
   width: 54rpx;
   height: 54rpx;
+}
+
+.cover-motifs .sprite-sheet {
   filter: brightness(0) invert(1);
   opacity: .9;
 }
 
-.g-ingot { background-position: 0% 0%; }
-.g-magpie { background-position: 25% 0%; }
-.g-cloud { background-position: 50% 0%; }
-.g-lantern { background-position: 75% 0%; }
-.g-bag { background-position: 100% 0%; }
-.g-knot { background-position: 0% 33.333%; }
-.g-koi { background-position: 25% 33.333%; }
-.g-chest { background-position: 50% 33.333%; }
-.g-diamond { background-position: 75% 33.333%; }
-.g-crown { background-position: 100% 33.333%; }
-.g-star { background-position: 0% 66.666%; }
-.g-mountain { background-position: 25% 66.666%; }
-.g-bamboo { background-position: 50% 66.666%; }
-.g-snow { background-position: 75% 66.666%; }
-.g-football { background-position: 100% 66.666%; }
-.g-trophy { background-position: 0% 100%; }
-.g-wave { background-position: 25% 100%; }
-.g-palm { background-position: 50% 100%; }
-.g-horse { background-position: 75% 100%; }
-.g-lotus { background-position: 100% 100%; }
+.g-ingot { left: 0; top: 0; }
+.g-magpie { left: -100%; top: 0; }
+.g-cloud { left: -200%; top: 0; }
+.g-lantern { left: -300%; top: 0; }
+.g-bag { left: -400%; top: 0; }
+.g-knot { left: 0; top: -100%; }
+.g-koi { left: -100%; top: -100%; }
+.g-chest { left: -200%; top: -100%; }
+.g-diamond { left: -300%; top: -100%; }
+.g-crown { left: -400%; top: -100%; }
+.g-star { left: 0; top: -200%; }
+.g-mountain { left: -100%; top: -200%; }
+.g-bamboo { left: -200%; top: -200%; }
+.g-snow { left: -300%; top: -200%; }
+.g-football { left: -400%; top: -200%; }
+.g-trophy { left: 0; top: -300%; }
+.g-wave { left: -100%; top: -300%; }
+.g-palm { left: -200%; top: -300%; }
+.g-horse { left: -300%; top: -300%; }
+.g-lotus { left: -400%; top: -300%; }
 
-.g2-cat { background-position: 0% 0%; }
-.g2-heart { background-position: 25% 0%; }
-.g2-ribbon { background-position: 50% 0%; }
-.g2-firework { background-position: 75% 0%; }
-.g2-pattern { background-position: 100% 0%; }
-.g2-shield { background-position: 0% 25%; }
-.g2-erhu { background-position: 25% 25%; }
-.g2-monument { background-position: 50% 25%; }
-.g2-skier { background-position: 75% 25%; }
-.g2-gift { background-position: 100% 25%; }
-.g2-mask { background-position: 0% 50%; }
-.g2-snake { background-position: 25% 50%; }
-.g2-dragon { background-position: 50% 50%; }
-.g2-drum { background-position: 75% 50%; }
-.g2-sunset { background-position: 100% 50%; }
-.g2-flag { background-position: 0% 75%; }
-.g2-bridge { background-position: 25% 75%; }
-.g2-ruyi { background-position: 50% 75%; }
-.g2-rope { background-position: 75% 75%; }
-.g2-steps { background-position: 100% 75%; }
-.g2-pine { background-position: 0% 100%; }
-.g2-panda { background-position: 25% 100%; }
-.g2-sun { background-position: 50% 100%; }
-.g2-moon { background-position: 75% 100%; }
-.g2-fan { background-position: 100% 100%; }
+.g2-cat { left: 0; top: 0; }
+.g2-heart { left: -100%; top: 0; }
+.g2-ribbon { left: -200%; top: 0; }
+.g2-firework { left: -300%; top: 0; }
+.g2-pattern { left: -400%; top: 0; }
+.g2-shield { left: 0; top: -100%; }
+.g2-erhu { left: -100%; top: -100%; }
+.g2-monument { left: -200%; top: -100%; }
+.g2-skier { left: -300%; top: -100%; }
+.g2-gift { left: -400%; top: -100%; }
+.g2-mask { left: 0; top: -200%; }
+.g2-snake { left: -100%; top: -200%; }
+.g2-dragon { left: -200%; top: -200%; }
+.g2-drum { left: -300%; top: -200%; }
+.g2-sunset { left: -400%; top: -200%; }
+.g2-flag { left: 0; top: -300%; }
+.g2-bridge { left: -100%; top: -300%; }
+.g2-ruyi { left: -200%; top: -300%; }
+.g2-rope { left: -300%; top: -300%; }
+.g2-steps { left: -400%; top: -300%; }
+.g2-pine { left: 0; top: -400%; }
+.g2-panda { left: -100%; top: -400%; }
+.g2-sun { left: -200%; top: -400%; }
+.g2-moon { left: -300%; top: -400%; }
+.g2-fan { left: -400%; top: -400%; }
 
 @media (max-width: 390px) {
+  .mall,
+  .budget-screen,
+  .validation-screen,
+  .summary-screen {
+    padding-right: 22rpx;
+    padding-left: 22rpx;
+  }
+
+  .mall-copy,
+  .budget-sheet,
+  .validation-card,
+  .receipt {
+    padding-right: 24rpx;
+    padding-left: 24rpx;
+  }
+
+  .mall-title,
+  .page-title,
+  .budget-sheet .page-title,
+  .validation-card .page-title,
+  .receipt .page-title {
+    font-size: 42rpx;
+    overflow-wrap: anywhere;
+  }
+
+  .budget-input {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .budget-input > view:last-child {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .budget-input input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .shop-hero,
+  .pay-panel,
+  .book-panel,
+  .catalog,
+  .owner-panel {
+    margin-right: 16rpx;
+    margin-left: 16rpx;
+  }
+
+  .shop-hero {
+    margin: 0;
+    padding-right: 24rpx;
+    padding-left: 24rpx;
+  }
+
+  .wallet-strip text {
+    font-size: 17rpx;
+  }
+
+  .wallet-strip .strong {
+    font-size: 23rpx;
+  }
+
+  .catalog-head {
+    flex-wrap: wrap;
+  }
+
+  .ticket-cover {
+    padding: 24rpx;
+  }
+
+  .ticket-cover > view:nth-child(2) {
+    padding-right: 120rpx;
+    font-size: 44rpx;
+  }
+
+  .ticket-cover > .strong {
+    right: 24rpx;
+    font-size: 31rpx;
+  }
+
+  .product-body,
+  .pay-panel,
+  .book-panel {
+    padding: 22rpx;
+  }
+
   .scratch-screen {
     padding-right: 14rpx;
     padding-left: 14rpx;
@@ -1396,6 +1519,8 @@
 
   .ticket-cell {
     min-height: 78rpx;
+    padding-right: 1rpx;
+    padding-left: 1rpx;
   }
 
   .ticket-foot {
@@ -1427,5 +1552,15 @@
   .sprite {
     width: 38rpx;
     height: 38rpx;
+  }
+
+  .validation-card,
+  .receipt {
+    width: 100%;
+  }
+
+  .verified-list view,
+  .receipt-head {
+    align-items: flex-start;
   }
 }

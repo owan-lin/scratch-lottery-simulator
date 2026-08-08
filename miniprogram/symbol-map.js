@@ -145,6 +145,9 @@ function decoratePart(label) {
     label,
     glyph,
     sheet: glyph.startsWith("g2-") ? "sprite-v2" : "sprite-v1",
+    spriteSrc: glyph.startsWith("g2-")
+      ? "/assets/ticket-symbols-v2.png"
+      : "/assets/ticket-symbols-v1.png",
     text,
   };
 }

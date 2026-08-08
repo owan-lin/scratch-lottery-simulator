@@ -105,4 +105,18 @@ npm test
 4. 确认开发者工具显示 AppID `wx6ea3bd67ad8d311a`。
 5. 编译后会直接进入商场彩票店场景。
 
+## 上传开发版本
+
+仓库使用微信官方 `miniprogram-ci`，上传密钥必须保存在仓库外，并通过环境变量临时传入：
+
+```powershell
+$env:WECHAT_PRIVATE_KEY_PATH='你的上传密钥绝对路径'
+$env:WECHAT_UPLOAD_VERSION='0.1.0'
+npm run upload:miniprogram
+```
+
+上传前先执行 `npm run check:miniprogram`。微信公众平台的“小程序代码上传”IP 白名单必须包含执行上传的公网 IP。仓库已忽略 `*.key`，任何上传密钥、AppSecret 或访问令牌都不得提交到 GitHub。
+
+`0.1.0` 已于 2026-08-08 成功上传为开发版本；上传开发版本不会自动提交审核或发布。
+
 正式预览码、体验版和提交审核必须使用用户自己的微信小程序账号与 AppID；代码仓库无法代替这一步。

@@ -77,6 +77,8 @@ npm run check:miniprogram
 
 然后在微信开发者工具里导入 `miniprogram/`。项目已配置小程序 AppID `wx6ea3bd67ad8d311a`；上传体验版或正式发布时需要使用该小程序的开发者身份。
 
+`0.1.0` 已于 2026-08-08 上传为微信公众平台开发版本。后续版本可通过仓库内的官方上传工具发布，具体命令和密钥安全要求见迁移文档。
+
 完整迁移阶段、真机测试清单和发布风险见 [`docs/WECHAT_MINIPROGRAM_PLAN.md`](docs/WECHAT_MINIPROGRAM_PLAN.md)。
 
 ## 真实性边界

@@ -12,7 +12,8 @@
     "test": "npm run build && node --test --test-isolation=none",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern miniprogram/shared",
     "sync:miniprogram": "node scripts/sync-miniprogram-core.mjs",
-    "check:miniprogram": "node scripts/sync-miniprogram-core.mjs --check && node --test --test-isolation=none tests/miniprogram.test.mjs"
+    "check:miniprogram": "node scripts/sync-miniprogram-core.mjs --check && node --test --test-isolation=none tests/miniprogram.test.mjs",
+    "upload:miniprogram": "node scripts/upload-miniprogram.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -30,6 +31,7 @@
     "@vitejs/plugin-rsc": "0.5.26",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
+    "miniprogram-ci": "2.1.31",
     "react-server-dom-webpack": "19.2.6",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",

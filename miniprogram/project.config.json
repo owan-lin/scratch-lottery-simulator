@@ -10,8 +10,7 @@
     "postcss": true,
     "minified": true,
     "compileHotReLoad": true,
-    "useStaticServer": true,
-    "ignoreUploadUnusedFiles": true
+    "useStaticServer": true
   },
   "compileType": "miniprogram",
   "appid": "wx6ea3bd67ad8d311a",

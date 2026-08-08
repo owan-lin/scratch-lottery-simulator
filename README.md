@@ -99,6 +99,7 @@ npm run check:miniprogram
 - [docs/ticket-catalog.md](docs/ticket-catalog.md)：60 款票种目录与证据等级
 - [docs/PRODUCT_REVIEW.md](docs/PRODUCT_REVIEW.md)：Section Infi 产品审视与迭代决策
 - [docs/LLM_COST.md](docs/LLM_COST.md)：剧情模式与大模型 Token 预算
+- [docs/WECHAT_RELEASE_METADATA.md](docs/WECHAT_RELEASE_METADATA.md)：微信发布名称、图标、简介与审核清单
 - GitHub Actions 会在推送和 Pull Request 时执行构建与测试
 
 ## 免责声明

@@ -63,7 +63,7 @@
 
 .ticket-wall {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16rpx;
   width: 430rpx;
 }
@@ -277,7 +277,7 @@
 
 .budget-presets {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16rpx;
   margin: 34rpx 0 22rpx;
 }
@@ -377,7 +377,7 @@
 
 .wallet-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10rpx;
 }
 
@@ -435,7 +435,7 @@
 
 .pay-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14rpx;
   margin-top: 18rpx;
 }
@@ -692,7 +692,7 @@
 .pick-buttons,
 .owner-picks {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10rpx;
   margin-top: 12rpx;
 }
@@ -765,7 +765,7 @@
 
 .scratch-top {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: max-content minmax(60rpx, 1fr) max-content;
   align-items: center;
   gap: 14rpx;
   color: #f7eaca;
@@ -829,6 +829,12 @@
   gap: 16rpx;
   position: relative;
   z-index: 1;
+}
+
+.ticket-head > view:first-child,
+.speech,
+.catalog-head > view:first-child {
+  min-width: 0;
 }
 
 .ticket-head > view > text:first-child {
@@ -923,13 +929,13 @@
 
 .cells {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8rpx;
 }
 
 .ticket-match .main-cells,
 .ticket-symbol .main-cells {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .ticket-cell {
@@ -940,6 +946,8 @@
   min-height: 82rpx;
   padding: 6rpx 3rpx;
   box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
   border: 2rpx solid #8d8e8a;
   border-radius: 5rpx;
   background: rgba(230,230,226,.72);
@@ -964,7 +972,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 26rpx;
+  min-width: 0;
 }
 
 .symbol-part text {
@@ -994,7 +1002,7 @@
 }
 
 .combo-group .cells {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6rpx;
 }
 
@@ -1030,13 +1038,16 @@
 
 .toolbox > view:nth-child(2) {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10rpx;
   margin-top: 16rpx;
 }
 
 .toolbox > view:nth-child(2) button {
+  width: 100%;
+  min-width: 0;
   min-height: 115rpx;
+  margin: 0;
   padding: 10rpx;
   border: 2rpx solid #cfc3ac;
   border-radius: 10rpx;
@@ -1229,7 +1240,7 @@
 
 .receipt-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12rpx;
   margin: 30rpx 0;
 }
@@ -1281,10 +1292,18 @@
 .sprite {
   width: 42rpx;
   height: 42rpx;
+  background-repeat: no-repeat;
+}
+
+.sprite-v1 {
   background-image: url("/assets/ticket-symbols-v1.png");
   background-size: 500% 400%;
-  background-repeat: no-repeat;
   filter: grayscale(1) contrast(1.45) brightness(.45);
+}
+
+.sprite-v2 {
+  background-image: url("/assets/ticket-symbols-v2.png");
+  background-size: 500% 500%;
 }
 
 .cover-motifs .sprite {
@@ -1314,3 +1333,99 @@
 .g-palm { background-position: 50% 100%; }
 .g-horse { background-position: 75% 100%; }
 .g-lotus { background-position: 100% 100%; }
+
+.g2-cat { background-position: 0% 0%; }
+.g2-heart { background-position: 25% 0%; }
+.g2-ribbon { background-position: 50% 0%; }
+.g2-firework { background-position: 75% 0%; }
+.g2-pattern { background-position: 100% 0%; }
+.g2-shield { background-position: 0% 25%; }
+.g2-erhu { background-position: 25% 25%; }
+.g2-monument { background-position: 50% 25%; }
+.g2-skier { background-position: 75% 25%; }
+.g2-gift { background-position: 100% 25%; }
+.g2-mask { background-position: 0% 50%; }
+.g2-snake { background-position: 25% 50%; }
+.g2-dragon { background-position: 50% 50%; }
+.g2-drum { background-position: 75% 50%; }
+.g2-sunset { background-position: 100% 50%; }
+.g2-flag { background-position: 0% 75%; }
+.g2-bridge { background-position: 25% 75%; }
+.g2-ruyi { background-position: 50% 75%; }
+.g2-rope { background-position: 75% 75%; }
+.g2-steps { background-position: 100% 75%; }
+.g2-pine { background-position: 0% 100%; }
+.g2-panda { background-position: 25% 100%; }
+.g2-sun { background-position: 50% 100%; }
+.g2-moon { background-position: 75% 100%; }
+.g2-fan { background-position: 100% 100%; }
+
+@media (max-width: 390px) {
+  .scratch-screen {
+    padding-right: 14rpx;
+    padding-left: 14rpx;
+  }
+
+  .scratch-top {
+    gap: 10rpx;
+    font-size: 18rpx;
+  }
+
+  .ticket-face {
+    padding: 18rpx;
+    border-width: 6rpx;
+  }
+
+  .ticket-head > view > view {
+    font-size: 40rpx;
+  }
+
+  .ticket-rule {
+    padding: 12rpx;
+    font-size: 17rpx;
+  }
+
+  .scratch-zone,
+  .ticket-content {
+    min-height: 600rpx;
+  }
+
+  .ticket-content {
+    padding: 14rpx;
+  }
+
+  .ticket-cell {
+    min-height: 78rpx;
+  }
+
+  .ticket-foot {
+    flex-wrap: wrap;
+    font-size: 14rpx;
+  }
+
+  .toolbox {
+    padding: 18rpx;
+  }
+
+  .toolbox > view:nth-child(2) {
+    gap: 8rpx;
+  }
+
+  .toolbox > view:nth-child(2) button {
+    min-height: 108rpx;
+    padding: 8rpx 3rpx;
+  }
+
+  .toolbox button text:nth-child(2) {
+    font-size: 18rpx;
+  }
+
+  .toolbox button text:last-child {
+    font-size: 14rpx;
+  }
+
+  .sprite {
+    width: 38rpx;
+    height: 38rpx;
+  }
+}

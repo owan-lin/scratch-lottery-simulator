@@ -29,6 +29,7 @@ const {
   makeBookPrizePool: makeMiniBookPrizePool,
   makeSeededRandom: makeMiniSeededRandom,
 } = require("../miniprogram/shared/prize-model.js");
+const { decoratePart, isPrintedMark } = require("../miniprogram/symbol-map.js");
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -111,9 +112,41 @@ test("whole-book pools remain identical and every printed ticket re-evaluates to
   }
 });
 
+test("every catalog pictogram has a visual glyph and unknown symbols never degrade to text", () => {
+  const symbols = new Set([
+    ...MINI_TYPES.flatMap((type) => type.artSymbols || []),
+    "猫",
+    "起点",
+    "终点",
+    "未收录测试图符",
+  ]);
+
+  for (const symbol of symbols) {
+    const decorated = decoratePart(symbol);
+    if (isPrintedMark(symbol)) {
+      assert.equal(decorated.text, true, `${symbol} should remain a printed mark`);
+      assert.equal(decorated.glyph, "");
+      continue;
+    }
+    assert.ok(decorated.glyph, `${symbol} is missing a pictogram`);
+    assert.ok(
+      decorated.sheet === "sprite-v1" || decorated.sheet === "sprite-v2",
+      `${symbol} has an invalid sprite sheet`,
+    );
+    assert.equal(decorated.text, false, `${symbol} unexpectedly degraded to text`);
+  }
+
+  for (const printedMark of ["阿喜", "66", "10×"]) {
+    const decorated = decoratePart(printedMark);
+    assert.equal(decorated.text, true);
+    assert.equal(decorated.glyph, "");
+  }
+});
+
 test("mini-program project is importable and validates at the static boundary", async () => {
   for (const file of [
     "miniprogram/app.js",
+    "miniprogram/symbol-map.js",
     "miniprogram/pages/game/game.js",
     "miniprogram/shared/ticket-engine.js",
     "miniprogram/shared/prize-model.js",
@@ -123,12 +156,26 @@ test("mini-program project is importable and validates at the static boundary", 
     assert.doesNotThrow(() => new vm.Script(source, { filename: file }));
   }
 
-  const [appConfig, projectConfig, sitemap, pageSource, template] = await Promise.all([
+  const [
+    appConfig,
+    projectConfig,
+    sitemap,
+    pageSource,
+    template,
+    pageStyle,
+    sourceSpriteV2,
+    miniSpriteV2,
+    vectorSpriteV2,
+  ] = await Promise.all([
     readFile(path.join(root, "miniprogram", "app.json"), "utf8"),
     readFile(path.join(root, "miniprogram", "project.config.json"), "utf8"),
     readFile(path.join(root, "miniprogram", "sitemap.json"), "utf8"),
     readFile(path.join(root, "miniprogram", "pages", "game", "game.js"), "utf8"),
     readFile(path.join(root, "miniprogram", "pages", "game", "game.wxml"), "utf8"),
+    readFile(path.join(root, "miniprogram", "pages", "game", "game.wxss"), "utf8"),
+    readFile(path.join(root, "public", "assets", "ticket-symbols-v2.png")),
+    readFile(path.join(root, "miniprogram", "assets", "ticket-symbols-v2.png")),
+    readFile(path.join(root, "public", "assets", "ticket-symbols-v2.svg"), "utf8"),
   ]);
 
   assert.doesNotThrow(() => JSON.parse(appConfig));
@@ -140,6 +187,12 @@ test("mini-program project is importable and validates at the static boundary", 
   assert.match(template, /catchtouchmove="onScratchMove"/);
   assert.match(template, /拿给老板验票/);
   assert.match(template, /灰|ticket-content/);
+  assert.match(template, /sprite \{\{part\.sheet\}\} \{\{part\.glyph\}\}/);
+  assert.match(pageStyle, /repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(pageStyle, /\.toolbox[\s\S]*?button[\s\S]*?min-width:\s*0/);
+  assert.match(pageStyle, /ticket-symbols-v2\.png/);
+  assert.match(vectorSpriteV2, /viewBox="0 0 500 500"/);
+  assert.deepEqual(miniSpriteV2, sourceSpriteV2);
 
   const allowedTags = new Set([
     "view",

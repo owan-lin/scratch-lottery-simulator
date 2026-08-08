@@ -72,20 +72,23 @@ for (const [filePath, expected] of outputs) {
   }
 }
 
-const sourceSprite = path.join(root, "public", "assets", "ticket-symbols-v1.png");
-const targetSprite = path.join(root, "miniprogram", "assets", "ticket-symbols-v1.png");
-let spriteMatches = false;
-try {
-  const [source, target] = await Promise.all([readFile(sourceSprite), readFile(targetSprite)]);
-  spriteMatches = source.equals(target);
-} catch {
-  // The asset will be copied below or reported as stale.
-}
-if (!spriteMatches) {
-  stale = true;
-  if (!checkOnly) {
-    await mkdir(path.dirname(targetSprite), { recursive: true });
-    await copyFile(sourceSprite, targetSprite);
+const spriteNames = ["ticket-symbols-v1.png", "ticket-symbols-v2.png"];
+for (const spriteName of spriteNames) {
+  const sourceSprite = path.join(root, "public", "assets", spriteName);
+  const targetSprite = path.join(root, "miniprogram", "assets", spriteName);
+  let spriteMatches = false;
+  try {
+    const [source, target] = await Promise.all([readFile(sourceSprite), readFile(targetSprite)]);
+    spriteMatches = source.equals(target);
+  } catch {
+    // The asset will be copied below or reported as stale.
+  }
+  if (!spriteMatches) {
+    stale = true;
+    if (!checkOnly) {
+      await mkdir(path.dirname(targetSprite), { recursive: true });
+      await copyFile(sourceSprite, targetSprite);
+    }
   }
 }
 
@@ -93,5 +96,5 @@ if (checkOnly && stale) {
   console.error("WeChat Mini Program shared files are stale. Run: npm run sync:miniprogram");
   process.exitCode = 1;
 } else if (!checkOnly) {
-  console.log(`Synced ${outputs.size} shared modules and the ticket pictogram sprite.`);
+  console.log(`Synced ${outputs.size} shared modules and ${spriteNames.length} pictogram sprites.`);
 }

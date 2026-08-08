@@ -167,7 +167,7 @@
             wx:for-item="motif"
             class="motif"
           >
-            <view wx:if="{{motif.glyph}}" class="sprite {{motif.glyph}}"></view>
+            <view wx:if="{{motif.glyph}}" class="sprite {{motif.sheet}} {{motif.glyph}}"></view>
             <text wx:else>{{motif.label}}</text>
           </view>
         </view>
@@ -260,7 +260,7 @@
               <view wx:for="{{group.cells}}" wx:key="id" wx:for-item="cell" class="ticket-cell">
                 <view wx:if="{{cell.parts.length}}" class="symbol-run">
                   <view wx:for="{{cell.parts}}" wx:key="id" wx:for-item="part" class="symbol-part">
-                    <view wx:if="{{part.glyph && !part.text}}" class="sprite {{part.glyph}}"></view>
+                    <view wx:if="{{part.glyph && !part.text}}" class="sprite {{part.sheet}} {{part.glyph}}"></view>
                     <text wx:else>{{part.label}}</text>
                   </view>
                 </view>
@@ -279,7 +279,7 @@
           >
             <view wx:if="{{cell.parts.length && activeTicket.mode !== 'direct'}}" class="symbol-run">
               <view wx:for="{{cell.parts}}" wx:key="id" wx:for-item="part" class="symbol-part">
-                <view wx:if="{{part.glyph && !part.text}}" class="sprite {{part.glyph}}"></view>
+                <view wx:if="{{part.glyph && !part.text}}" class="sprite {{part.sheet}} {{part.glyph}}"></view>
                 <text wx:else>{{part.label}}</text>
               </view>
             </view>
